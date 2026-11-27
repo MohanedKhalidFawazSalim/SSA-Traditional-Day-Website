@@ -254,24 +254,40 @@ function goToPrevCard() {
   }
 }
 
+
 function initFlashcardControls() {
+  // Navigation buttons work with mouse clicks and touchscreen taps.
   dom.btnNextCard.addEventListener("click", goToNextCard);
   dom.btnPrevCard.addEventListener("click", goToPrevCard);
   dom.btnNextMobile.addEventListener("click", goToNextCard);
   dom.btnPrevMobile.addEventListener("click", goToPrevCard);
 
-  dom.flashcardEl.addEventListener("touchstart", (event) => {
-    appState.touchStartX = event.changedTouches[0].screenX;
-  }, { passive: true });
+  // Touchscreen, stylus and mouse swipe support.
+  let startX = 0;
+  let startY = 0;
 
-  dom.flashcardEl.addEventListener("touchend", (event) => {
-    appState.touchEndX = event.changedTouches[0].screenX;
-    const difference = appState.touchEndX - appState.touchStartX;
-    if (Math.abs(difference) < 45) return;
-    // في واجهة RTL: السحب لليمين يعرض البطاقة التالية.
-    if (difference > 0) goToNextCard();
-    else goToPrevCard();
-  }, { passive: true });
+  dom.flashcardEl.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    startX = event.clientX;
+    startY = event.clientY;
+  });
+
+  dom.flashcardEl.addEventListener("pointerup", (event) => {
+    const differenceX = event.clientX - startX;
+    const differenceY = event.clientY - startY;
+
+    // Ignore small movements and vertical scrolling.
+    if (Math.abs(differenceX) < 50) return;
+    if (Math.abs(differenceX) < Math.abs(differenceY)) return;
+
+    // RTL: swipe right = next, swipe left = previous.
+    if (differenceX > 0) {
+      goToNextCard();
+    } else {
+      goToPrevCard();
+    }
+  });
 }
 
 function initKeyboardAndResize() {
