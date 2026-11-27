@@ -1,91 +1,4836 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Traditional Day</title>
+  <meta charset="utf-8">
+  <title>ASTRA — Junior Astronaut Mission Trainer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+  <style>
+    :root {
+      --bg-outer: #080a14;
+      --ink: #1e1933;
+      --ink-muted: #564d75;
+      --win-bg: #f6f4ec;
+      --win-card: #ffffff;
+      --border-dark: #231c3d;
+      --border-light: #d6cfbe;
+      --accent: #e06a34;
+      --btn-bg: #ffd466;
+      --btn-hover: #ffe699;
+      --good: #1a8247;
+      --bad: #c43131;
+      --warn: #bf7111;
+      --info: #2563eb;
+    }
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #f8f5ef;
-            color: #000000;
-        }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg-outer);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-family: "Press Start 2P", ui-monospace, monospace;
+    }
 
-        header {
-            background: #6b3e26;
-            color: white;
-            text-align: center;
-            padding: 60px 20px;
-        }
+    /* Fixed 960x640 viewport scaled proportionally to fit any laptop/desktop screen */
+    #stage {
+      position: relative;
+      width: 960px;
+      height: 640px;
+      flex: none;
+      transform-origin: center center;
+      background: #090b18;
+      overflow: hidden;
+      box-shadow: 0 0 0 4px #281e42, 0 24px 64px rgba(0, 0, 0, 0.85);
+      color: var(--ink);
+      font-size: 11px;
+      line-height: 1.6;
+    }
 
-        header h1 {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
+    canvas#gameCanvas {
+      width: 960px;
+      height: 640px;
+      display: block;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-crisp-edges;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
 
-        header p {
-            font-size: 1.2rem;
-        }
+    .px-sprite {
+      display: inline-block;
+      vertical-align: middle;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      flex: none;
+    }
 
-        main {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 20px;
-            text-align: center;
-        }
+    /* ===== PERSISTENT TOP RESOURCE HUD ===== */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 54px;
+      display: none;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 8px;
+      background: rgba(16, 14, 32, 0.96);
+      border-bottom: 4px solid #0c0a1a;
+      color: #f6f4ec;
+      font-size: 7.5px;
+      z-index: 12;
+    }
 
-        section {
-            background: white;
-            padding: 30px;
-            margin-bottom: 25px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
+    .hud-cell {
+      flex: 1;
+      min-width: 0;
+      background: rgba(255, 255, 255, 0.06);
+      border: 2px solid #392f5e;
+      padding: 4px 5px;
+    }
 
-        h2 {
-            color: #6b3e26;
-            margin-bottom: 15px;
-        }
+    .hud-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 3px;
+      white-space: nowrap;
+    }
 
-        footer {
-            text-align: center;
-            background: #6b3e26;
-            color: white;
-            padding: 20px;
-        }
-    </style>
+    .hud-label {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .hud-vals {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .hud-bar {
+      height: 5px;
+      background: #0c0a1a;
+      border: 1px solid #000;
+      margin-top: 3px;
+      overflow: hidden;
+    }
+
+    .hud-bar > i {
+      display: block;
+      height: 100%;
+      transition: width 0.2s steps(6);
+    }
+
+    .hud-day {
+      flex: none;
+      background: #251d40;
+      border: 2px solid #ffd466;
+      color: #ffd466;
+      padding: 6px 8px;
+      font-size: 8.5px;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .hud-actions {
+      display: flex;
+      gap: 4px;
+      flex: none;
+    }
+
+    .hud-btn {
+      font-family: inherit;
+      font-size: 7.5px;
+      background: #ffd466;
+      color: #1e1933;
+      border: 2px solid #0c0a1a;
+      padding: 6px 7px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .hud-btn:hover {
+      background: #ffe699;
+    }
+
+    .hud-btn.sim {
+      background: #4fd190;
+    }
+
+    .hud-btn.sim:hover {
+      background: #7ef2b2;
+    }
+
+    .hud-warn {
+      border-color: #ff5e5e;
+      animation: hudBlink 0.75s steps(2) infinite;
+    }
+
+    @keyframes hudBlink {
+      50% { opacity: 0.45; }
+    }
+
+    /* ===== OBJECTIVE SUB-BAR ===== */
+    #objectiveBar {
+      position: absolute;
+      top: 54px;
+      left: 0;
+      right: 0;
+      background: rgba(25, 22, 48, 0.9);
+      border-bottom: 2px solid #392f5e;
+      color: #dbeafe;
+      font-size: 8px;
+      padding: 4px 12px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 11;
+    }
+
+    /* ===== DEDICATED STATUS TOAST BANNER ===== */
+    #toast {
+      position: absolute;
+      top: 82px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #231c3d;
+      color: #ffd466;
+      border: 3px solid #ffd466;
+      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.65);
+      padding: 7px 14px;
+      font-size: 9px;
+      display: none;
+      z-index: 26;
+      white-space: nowrap;
+    }
+
+    /* ===== NEARBY INTERACTION PROMPT (CLICKABLE OR [ENTER]) ===== */
+    #prompt {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--win-bg);
+      color: var(--ink);
+      border: 4px solid var(--border-dark);
+      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6);
+      padding: 7px 14px;
+      font-size: 10px;
+      display: none;
+      z-index: 15;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    #prompt:hover {
+      background: var(--btn-hover);
+    }
+
+    /* ===== REUSABLE DIALOGUE BOX & CHOICES ===== */
+    #dialogueBox {
+      position: absolute;
+      left: 28px;
+      right: 28px;
+      bottom: 16px;
+      min-height: 126px;
+      background: var(--win-bg);
+      border: 5px solid var(--border-dark);
+      box-shadow: inset 0 0 0 3px var(--border-light), 6px 6px 0 rgba(0, 0, 0, 0.7);
+      padding: 14px 18px 24px 18px;
+      display: none;
+      z-index: 22;
+    }
+
+    .dlg-layout {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .dlg-portrait {
+      width: 58px;
+      height: 58px;
+      background: #1b1730;
+      border: 3px solid var(--border-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+
+    .dlg-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .dlg-speaker {
+      color: var(--accent);
+      font-size: 10px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .dlg-text {
+      color: var(--ink);
+      font-size: 11px;
+      line-height: 1.85;
+      min-height: 40px;
+    }
+
+    .dlg-choices {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .choice-btn {
+      font-family: inherit;
+      font-size: 9.5px;
+      text-align: left;
+      background: #ffffff;
+      color: var(--ink);
+      border: 3px solid var(--border-dark);
+      padding: 7px 10px;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--border-dark);
+    }
+
+    .choice-btn:hover, .choice-btn.selected {
+      background: var(--btn-bg);
+    }
+
+    .dlg-hint {
+      position: absolute;
+      right: 14px;
+      bottom: 7px;
+      font-size: 8px;
+      color: var(--ink-muted);
+    }
+
+    /* ===== MODAL OVERLAYS & WINDOWS ===== */
+    #modalLayer {
+      position: absolute;
+      inset: 0;
+      display: none;
+      z-index: 30;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 10, 20, 0.74);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .overlay.menu-overlay {
+      background: transparent;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding-top: 42px;
+    }
+
+    .window {
+      background: var(--win-bg);
+      border: 5px solid var(--border-dark);
+      box-shadow: inset 0 0 0 3px var(--border-light), 8px 8px 0 rgba(0, 0, 0, 0.75);
+      padding: 16px 20px;
+      width: 100%;
+      max-width: 820px;
+      max-height: 575px;
+      overflow-y: auto;
+      color: var(--ink);
+    }
+
+    .window.narrow {
+      max-width: 530px;
+    }
+
+    .win-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 3px solid var(--border-light);
+      padding-bottom: 9px;
+      margin-bottom: 12px;
+    }
+
+    .win-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .status-pill {
+      font-size: 8.5px;
+      padding: 4px 8px;
+      border: 2px solid var(--border-dark);
+      background: #e4dfd0;
+    }
+
+    .status-pill.ready {
+      background: #c7f2d6;
+      color: #135e32;
+    }
+
+    .status-pill.growing {
+      background: #fef08a;
+      color: #854d0e;
+    }
+
+    .status-pill.offline {
+      background: #fecaca;
+      color: #991b1b;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 10px 0;
+    }
+
+    .panel-box {
+      background: var(--win-card);
+      border: 3px solid var(--border-dark);
+      padding: 10px 12px;
+    }
+
+    .panel-box h3 {
+      margin: 0 0 8px 0;
+      font-size: 9.5px;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+    }
+
+    .cost-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 6px 0;
+      font-size: 9px;
+    }
+
+    .cost-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f1ede2;
+      border: 2px solid var(--border-dark);
+      padding: 3px 6px;
+    }
+
+    .cost-tag.out {
+      background: #d5f5e0;
+    }
+
+    .queue-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: #f8f7f2;
+      border: 2px solid var(--border-dark);
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      font-size: 9px;
+    }
+
+    .machine-quote {
+      background: #ebe6d5;
+      border-left: 4px solid var(--accent);
+      padding: 8px 10px;
+      font-size: 9.5px;
+      margin: 10px 0;
+      color: #32264d;
+    }
+
+    /* ===== PIXEL BUTTONS ===== */
+    .btn {
+      font-family: inherit;
+      font-size: 10px;
+      background: var(--btn-bg);
+      color: var(--ink);
+      border: 3px solid var(--border-dark);
+      box-shadow: 3px 3px 0 var(--border-dark);
+      padding: 8px 12px;
+      margin: 3px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.08s;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--btn-hover);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--border-dark);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .btn.secondary {
+      background: #e5dfd0;
+    }
+
+    .btn.secondary:hover:not(:disabled) {
+      background: #f2ede0;
+    }
+
+    .btn.good {
+      background: #5ce09b;
+    }
+
+    .btn.good:hover:not(:disabled) {
+      background: #86f2b9;
+    }
+
+    .btn.danger {
+      background: #f59b8e;
+    }
+
+    .btn.small {
+      font-size: 8px;
+      padding: 4px 7px;
+      margin: 0;
+      box-shadow: 2px 2px 0 var(--border-dark);
+    }
+
+    /* ===== MAIN MENU TITLE & STACK ===== */
+    .game-logo {
+      font-size: 52px;
+      color: #ffd466;
+      text-shadow: 4px 4px 0 #d95b26, 8px 8px 0 #141026;
+      letter-spacing: 4px;
+      margin: 0 0 8px 0;
+      text-align: center;
+    }
+
+    .game-subtitle {
+      font-size: 10px;
+      color: #dbeafe;
+      text-shadow: 2px 2px 0 #100c20;
+      margin: 0 0 22px 0;
+      text-align: center;
+    }
+
+    .menu-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .menu-stack .btn {
+      width: 280px;
+      font-size: 11px;
+      padding: 11px 14px;
+    }
+
+    /* ===== SIMULATION PROGRESS BAR ===== */
+    .sim-progress {
+      height: 18px;
+      background: #ffffff;
+      border: 4px solid var(--border-dark);
+      margin: 14px 0;
+      padding: 2px;
+    }
+
+    .sim-progress > i {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.1s steps(10);
+    }
+
+    .delta-up { color: var(--good); }
+    .delta-dn { color: var(--bad); }
+    .msg-err {
+      color: var(--bad);
+      font-size: 9px;
+      line-height: 1.6;
+      min-height: 14px;
+      margin: 6px 0;
+    }
+
+    input[type="range"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+      vertical-align: middle;
+    }
+  </style>
 </head>
-
 <body>
+  <div id="stage">
+    <canvas id="gameCanvas" width="480" height="320"></canvas>
+    <div id="hud"></div>
+    <div id="objectiveBar"></div>
+    <div id="toast"></div>
+    <div id="prompt"></div>
+    <div id="dialogueBox"></div>
+    <div id="modalLayer"></div>
+  </div>
 
-    <header>
-        <h1>Traditional Day</h1>
-        <p>Celebrating culture, heritage, and traditions</p>
-    </header>
+  <script>
+  "use strict";
 
-    <main>
-        <section>
-            <h2>Welcome!</h2>
-            <p>Welcome to our Traditional Day website.
-               Stay tuned for information, activities, and memories!</p>
-        </section>
+  /* =========================================================================
+   * UTILITY: Clean Floating-Point Formatter
+   * Formats values like 15.14, 3.32, 2.25, or 120 cleanly without float noise.
+   * ========================================================================= */
+  function fmt(val) {
+    const rounded = Math.round((Number(val) || 0) * 100) / 100;
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace(/\.?0+$/, "");
+  }
 
-        <section>
-            <h2>About the Event</h2>
-            <p>More information about our Traditional Day will be added here.</p>
-        </section>
-    </main>
+  /* =========================================================================
+   * MODULE 1: CONFIG
+   * Centralized gameplay assumptions, scientifically referenced baseline values,
+   * action costs/outputs, crop rules, and daily lunar events.
+   * ========================================================================= */
+  const CONFIG = {
+    projectTitle: "ASTRA",
+    projectSubtitle: "JUNIOR ASTRONAUT MISSION TRAINER",
+    totalDays: 7,
 
-    <footer>
-        <p>Traditional Day © 2026</p>
-    </footer>
+    // Starting & Maximum Resource Parameters (Section 5 & Section 10)
+    resources: {
+      water:     { name: "Water",          unit: "L",   start: 120, max: 200, color: "#38a3e8" },
+      oxygen:    { name: "Oxygen",         unit: "kg",  start: 30,  max: 50,  color: "#4fd190" },
+      food:      { name: "Food",           unit: "FP",  start: 100, max: 150, color: "#e67432" }, // 1 FP = 1,000 kcal
+      power:     { name: "Power",          unit: "kWh", start: 120, max: 200, color: "#f2c230" },
+      integrity: { name: "Base Integrity", unit: "%",   start: 100, max: 100, color: "#7a9ef5" },
+      stamina:   { name: "Stamina",        unit: "%",   start: 100, max: 100, color: "#f25c78" }
+    },
 
+    // Greenhouse planting supplies (tracked inside Greenhouse UI, not in top HUD)
+    initialSupplies: {
+      seeds: 6,
+      nutrients: 6
+    },
+
+    // Daily Crew Consumption for 4 Astronauts (Gameplay reference values)
+    dailyCrewConsumption: {
+      water: 15.14,  // L/day
+      oxygen: 3.32,  // kg/day
+      food: 12.14    // FP/day (1 FP = 1,000 kcal)
+    },
+
+    // Automatic Power Balance (Solar +25 kWh/day, Base -10 kWh/day => +15 kWh/day)
+    powerSystem: {
+      solarGeneration: 25,
+      baseConsumption: 10
+    },
+
+    // Configurable depletion penalties when Water or Food reaches 0 during crew consumption
+    depletionPenalties: {
+      waterZeroStaminaPenalty: 15,
+      foodZeroStaminaPenalty: 12
+    },
+
+    // Immediate Sustenance Actions (Section 6)
+    sustenance: {
+      eatFood: {
+        id: "eatFood",
+        name: "Eat Ration Pack",
+        resource: "food",
+        cost: 2,          // 2 FP
+        staminaGain: 3    // +3% stamina immediately
+      },
+      drinkWater: {
+        id: "drinkWater",
+        name: "Drink Water",
+        resource: "water",
+        cost: 2,          // 2 L
+        staminaGain: 3    // +3% stamina immediately
+      }
+    },
+
+    // Queued Machine Actions (Section 7)
+    actions: {
+      recycleWater: {
+        id: "recycleWater",
+        name: "Water Recycling",
+        machineName: "Water Recycling Machine",
+        description: "Filters and distills cabin wastewater to recover clean potable water.",
+        requiresPower: true,
+        costs: { power: 3, stamina: 3 },
+        outputText: "+10 L Water (available after simulation)",
+        tutorialWhen: "Added to Water reserves after clicking SIMULATE / END DAY."
+      },
+      repairBase: {
+        id: "repairBase",
+        name: "Repair Equipment",
+        machineName: "Base Integrity Console",
+        description: "Reinforces hull seals, micrometeorite shielding, and life-support conduits.",
+        requiresPower: true,
+        costs: { power: 10, stamina: 20 },
+        outputText: "+20% Base Integrity (max 100%, after simulation)",
+        tutorialWhen: "Restores +20% Base Integrity after clicking SIMULATE / END DAY."
+      },
+      growFood: {
+        id: "growFood",
+        name: "Grow Food",
+        machineName: "Hydroponic Greenhouse",
+        description: "Plants lunar crop seedlings in nutrient-enriched mist. Takes 3 full days to mature.",
+        requiresPower: true,
+        costs: { water: 8, power: 8, stamina: 20, seeds: 1, nutrients: 1 },
+        cropGrowthDays: 3,
+        outputText: "Starts 3-day crop growth timer (no immediate FP)",
+        tutorialWhen: "Matures after 3 completed in-game days, then requires Harvest Food."
+      },
+      harvestFood: {
+        id: "harvestFood",
+        name: "Harvest Food",
+        machineName: "Hydroponic Greenhouse",
+        description: "Harvests mature lunar crops into nutritious 1,000 kcal Food Points (FP).",
+        requiresPower: false,
+        costs: { stamina: 23 },
+        outputText: "+15 FP Food (after simulation; resets bed to Empty)",
+        tutorialWhen: "Available once a planted crop reaches Mature status."
+      },
+      generateOxygen: {
+        id: "generateOxygen",
+        name: "Generate Oxygen",
+        machineName: "Oxygen Generator",
+        description: "Splits purified water via electrolysis to replenish breathable cabin oxygen.",
+        requiresPower: true,
+        costs: { water: 2.25, power: 6, stamina: 3 },
+        outputText: "+4 kg Oxygen (available after simulation)",
+        tutorialWhen: "Added to Oxygen reserves after clicking SIMULATE / END DAY."
+      }
+    },
+
+    // Configurable Daily Events (Days 1–7)
+    dailyEvents: {
+      1: {
+        title: "Nominal Lunar Touchdown",
+        description: "All lunar base telemetry settled cleanly after landing. No unexpected hazards.",
+        effects: {}
+      },
+      2: {
+        title: "Micrometeorite Dusting",
+        description: "High-velocity lunar dust abraded outer thermal panels (-12% Base Integrity).",
+        effects: { integrity: -12 }
+      },
+      3: {
+        title: "Solar Flare Surge",
+        description: "High solar irradiance boosted array output (+8 kWh Power), though radiation stressed seals (-5% Base Integrity).",
+        effects: { power: 8, integrity: -5 }
+      },
+      4: {
+        title: "Coolant Valve Frost",
+        description: "Shadow temperature drop froze an auxiliary line (-4 L Water, -8% Base Integrity).",
+        effects: { water: -4, integrity: -8 }
+      },
+      5: {
+        title: "Subsurface Ice Pocket",
+        description: "Thermal drill tapped a clean regolith ice seam (+8 L Water).",
+        effects: { water: 8 }
+      },
+      6: {
+        title: "Earthshine Shadow Pass",
+        description: "Low-angle ridge shadow reduced solar collection (-10 kWh Power) and chilled hull joints (-10% Base Integrity).",
+        effects: { power: -10, integrity: -10 }
+      },
+      7: {
+        title: "Final Ascent Window Prep",
+        description: "Orbital rendezvous beacon active! Maintain all life-support systems through the final night (-10% Base Integrity).",
+        effects: { integrity: -10 }
+      }
+    }
+  };
+
+
+  /* =========================================================================
+   * MODULE 2: GameState & Persistence
+   * Centralized state supporting Opening Story, Day 0 Tutorial, Days 1–7,
+   * immediate cost reservation, pending action queues, and 2 crop grow beds.
+   * ========================================================================= */
+  const GameState = (() => {
+    const STORAGE_KEY = "ASTRA_SAVE_V1";
+
+    function createInitial() {
+      return {
+        phase: "story_classroom", // "story_classroom" | "story_bedroom" | "day0" | "survival" | "gameover" | "victory"
+        day: 0,
+        room: "classroom",
+        x: 150,
+        y: 190,
+        facing: "right",
+        outfit: "kid",            // "kid" in classroom/bedroom, "suit" in spacecraft & lunar base
+
+        // Story & Day 0 Tutorial flags
+        storyFlags: {
+          classroomTalkDone: false,
+          wokeUpInSpace: false,
+          talkedNova: false,
+          talkedEngineer: false,
+          talkedScientist: false,
+          inspectedMachines: {}   // { water: true, oxygen: true, repair: true, greenhouse: true, galley: true }
+        },
+
+        // Core Resource Parameters
+        res: {
+          water: CONFIG.resources.water.start,
+          oxygen: CONFIG.resources.oxygen.start,
+          food: CONFIG.resources.food.start,
+          power: CONFIG.resources.power.start,
+          integrity: CONFIG.resources.integrity.start,
+          stamina: CONFIG.resources.stamina.start
+        },
+
+        // Greenhouse Supplies
+        supplies: {
+          seeds: CONFIG.initialSupplies.seeds,
+          nutrients: CONFIG.initialSupplies.nutrients
+        },
+
+        // Two Hydroponic Grow Beds: status = "Empty" | "Growing" | "Mature"
+        cropBeds: [
+          { id: 0, name: "Grow Bed A", status: "Empty", remainingDays: 0 },
+          { id: 1, name: "Grow Bed B", status: "Empty", remainingDays: 0 }
+        ],
+
+        // Queued actions for the current day (costs already deducted/reserved!)
+        pendingQueue: [],
+        lastReport: null
+      };
+    }
+
+    let current = createInitial();
+
+    return {
+      get: () => current,
+      reset: () => {
+        current = createInitial();
+        return current;
+      },
+      replace: (loaded) => {
+        current = loaded;
+        return current;
+      },
+      save: () => {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+          return true;
+        } catch (e) {
+          return false;
+        }
+      },
+      load: () => {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return null;
+          const d = JSON.parse(raw);
+          if (!d || typeof d !== "object" || !d.res || !RoomDefinitions[d.room]) return null;
+          for (const k of Object.keys(CONFIG.resources)) {
+            if (typeof d.res[k] !== "number" || Number.isNaN(d.res[k])) return null;
+          }
+          d.pendingQueue = Array.isArray(d.pendingQueue) ? d.pendingQueue : [];
+          d.cropBeds = Array.isArray(d.cropBeds) && d.cropBeds.length === 2
+            ? d.cropBeds
+            : createInitial().cropBeds;
+          d.supplies = d.supplies || { ...CONFIG.initialSupplies };
+          d.storyFlags = d.storyFlags || createInitial().storyFlags;
+          d.storyFlags.inspectedMachines = d.storyFlags.inspectedMachines || {};
+          d.outfit = d.outfit || (d.phase === "story_classroom" || d.phase === "story_bedroom" ? "kid" : "suit");
+          return d;
+        } catch (e) {
+          return null;
+        }
+      },
+      hasSave() {
+        return this.load() !== null;
+      }
+    };
+  })();
+
+
+  /* =========================================================================
+   * MODULE 3: GameLogicService
+   * Strictly implements:
+   * - Day 0 Safe Tutorial Rules (zero consumption, zero failure)
+   * - Immediate Sustenance (Eat Food, Drink Water)
+   * - Queued Action Validation, Immediate Cost Reservation & Refund Cancellation
+   * - 7-Step End-of-Day Simulation & Survival Validation
+   * ========================================================================= */
+  const GameLogicService = {
+    clamp(val, min, max) {
+      return Math.round(Math.max(min, Math.min(max, val)) * 100) / 100;
+    },
+
+    isDay0Complete(state) {
+      const f = state.storyFlags;
+      const machCount = Object.keys(f.inspectedMachines || {}).length;
+      return Boolean(f.talkedNova && f.talkedEngineer && f.talkedScientist && machCount >= 3);
+    },
+
+    /* Immediate Sustenance: Eat Food (-2 FP -> +3% Stamina) or Drink Water (-2 L -> +3% Stamina) */
+    consumeSustenance(state, type) {
+      if (state.phase === "day0") {
+        return {
+          ok: true,
+          message: "Day 0 Tutorial: In survival mode, this consumes 2 units and restores +3% Stamina immediately!"
+        };
+      }
+
+      const spec = CONFIG.sustenance[type];
+      if (!spec) return { ok: false, message: "Unknown sustenance action." };
+
+      if (state.res.stamina >= 100) {
+        return { ok: false, message: "Stamina is already at 100%!" };
+      }
+
+      const avail = state.res[spec.resource];
+      if (avail < spec.cost) {
+        const resInfo = CONFIG.resources[spec.resource];
+        const missing = fmt(spec.cost - avail);
+        return {
+          ok: false,
+          message: `Insufficient ${resInfo.name} — Required: ${spec.cost} ${resInfo.unit}, Available: ${fmt(avail)} ${resInfo.unit} (Need ${missing} more ${resInfo.unit}).`
+        };
+      }
+
+      state.res[spec.resource] = this.clamp(avail - spec.cost, 0, CONFIG.resources[spec.resource].max);
+      state.res.stamina = this.clamp(state.res.stamina + spec.staminaGain, 0, 100);
+      return {
+        ok: true,
+        message: `${spec.name}: -${spec.cost} ${CONFIG.resources[spec.resource].unit} -> +${spec.staminaGain}% Stamina (Now ${fmt(state.res.stamina)}%).`
+      };
+    },
+
+    /* Validate & Queue an Action: Immediately reserves/deducts costs, produces nothing until SIMULATE */
+    queueAction(state, actionId, bedIndex = null) {
+      if (state.phase === "day0") {
+        return {
+          ok: false,
+          message: "Day 0 Tutorial Mode: Actions cannot be queued until landing on the Moon (Day 1)."
+        };
+      }
+
+      const spec = CONFIG.actions[actionId];
+      if (!spec) return { ok: false, message: "Invalid action." };
+
+      // Check Power = 0 rule for powered machines
+      if (spec.requiresPower && state.res.power <= 0) {
+        return {
+          ok: false,
+          message: "Power Offline (0 kWh) — Powered machines cannot operate until solar power recharges."
+        };
+      }
+
+      // Greenhouse bed-specific validation
+      if (actionId === "growFood") {
+        const bed = state.cropBeds[bedIndex];
+        if (!bed || bed.status !== "Empty") {
+          return { ok: false, message: "This grow bed already has an active crop." };
+        }
+        const alreadyQueued = state.pendingQueue.some((q) => q.actionId === "growFood" && q.bedIndex === bedIndex);
+        if (alreadyQueued) {
+          return { ok: false, message: `${bed.name} already has a planting action queued today.` };
+        }
+      }
+
+      if (actionId === "harvestFood") {
+        const bed = state.cropBeds[bedIndex];
+        if (!bed || bed.status !== "Mature") {
+          return { ok: false, message: "Crop is not mature yet. Crops require 3 completed days before harvesting." };
+        }
+        const alreadyQueued = state.pendingQueue.some((q) => q.actionId === "harvestFood" && q.bedIndex === bedIndex);
+        if (alreadyQueued) {
+          return { ok: false, message: `${bed.name} is already queued for harvest today.` };
+        }
+      }
+
+      // Validate exact resource & stamina requirements
+      const missingList = [];
+      for (const [key, req] of Object.entries(spec.costs)) {
+        if (key === "seeds" || key === "nutrients") {
+          const avail = state.supplies[key];
+          if (avail < req) {
+            const label = key === "seeds" ? "Seeds" : "Nutrient Packs";
+            missingList.push(`Insufficient ${label} — Required: ${req}, Available: ${avail} (Need ${req - avail} more).`);
+          }
+        } else {
+          const avail = state.res[key];
+          if (avail < req) {
+            const info = CONFIG.resources[key];
+            const diff = fmt(req - avail);
+            if (key === "stamina") {
+              missingList.push(`Insufficient Stamina — Required: ${req}%, Available: ${fmt(avail)}% (Eat Food or Drink Water to recover stamina).`);
+            } else {
+              missingList.push(`Insufficient ${info.name} — Required: ${fmt(req)} ${info.unit}, Available: ${fmt(avail)} ${info.unit} (You need ${diff} more ${info.unit}).`);
+            }
+          }
+        }
+      }
+
+      if (missingList.length > 0) {
+        return { ok: false, message: missingList[0] };
+      }
+
+      // Immediately reserve / deduct costs
+      const reservedCosts = {};
+      for (const [key, req] of Object.entries(spec.costs)) {
+        reservedCosts[key] = req;
+        if (key === "seeds" || key === "nutrients") {
+          state.supplies[key] -= req;
+        } else {
+          state.res[key] = this.clamp(state.res[key] - req, 0, CONFIG.resources[key].max);
+        }
+      }
+
+      const queueId = "q_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6);
+      const label = bedIndex !== null
+        ? `${spec.name} (${state.cropBeds[bedIndex].name})`
+        : spec.name;
+
+      state.pendingQueue.push({
+        queueId,
+        actionId,
+        label,
+        bedIndex,
+        reservedCosts,
+        expectedOutput: spec.outputText
+      });
+
+      return {
+        ok: true,
+        message: `Queued: ${label}. Costs reserved immediately; output applies after SIMULATE.`
+      };
+    },
+
+    /* Cancel a pending action and refund all reserved resources & stamina */
+    cancelQueuedAction(state, queueId) {
+      const idx = state.pendingQueue.findIndex((q) => q.queueId === queueId);
+      if (idx === -1) return false;
+      const item = state.pendingQueue[idx];
+
+      for (const [key, amt] of Object.entries(item.reservedCosts)) {
+        if (key === "seeds" || key === "nutrients") {
+          state.supplies[key] += amt;
+        } else {
+          state.res[key] = this.clamp(state.res[key] + amt, 0, CONFIG.resources[key].max);
+        }
+      }
+
+      state.pendingQueue.splice(idx, 1);
+      return true;
+    },
+
+    /* 7-Step End-of-Day Simulation (Days 1–7) */
+    simulateEndOfDay(state) {
+      const dayNum = state.day;
+      const startSnapshot = { ...state.res };
+      const producedLog = [];
+      const consumedLog = [];
+      const maturedCrops = [];
+      const warnings = [];
+
+      // STEP 1: Execute Pending Actions (costs were ALREADY deducted when queued!)
+      for (const item of state.pendingQueue) {
+        if (item.actionId === "recycleWater") {
+          state.res.water = this.clamp(state.res.water + 10, 0, CONFIG.resources.water.max);
+          producedLog.push("Water Recycling: +10 L Water");
+        } else if (item.actionId === "generateOxygen") {
+          state.res.oxygen = this.clamp(state.res.oxygen + 4, 0, CONFIG.resources.oxygen.max);
+          producedLog.push("Generate Oxygen: +4 kg Oxygen");
+        } else if (item.actionId === "repairBase") {
+          state.res.integrity = this.clamp(state.res.integrity + 20, 0, CONFIG.resources.integrity.max);
+          producedLog.push("Repair Equipment: +20% Base Integrity");
+        } else if (item.actionId === "growFood") {
+          const bed = state.cropBeds[item.bedIndex];
+          if (bed) {
+            bed.status = "Growing";
+            bed.remainingDays = CONFIG.actions.growFood.cropGrowthDays;
+            producedLog.push(`${bed.name}: Seedlings planted (3-day growth timer started)`);
+          }
+        } else if (item.actionId === "harvestFood") {
+          const bed = state.cropBeds[item.bedIndex];
+          state.res.food = this.clamp(state.res.food + 15, 0, CONFIG.resources.food.max);
+          if (bed) {
+            bed.status = "Empty";
+            bed.remainingDays = 0;
+          }
+          producedLog.push(`Harvest Food (${bed ? bed.name : "Greenhouse"}): +15 FP Food`);
+        }
+      }
+      state.pendingQueue = [];
+
+      // STEP 2: Automatic Power System (+25 kWh Solar - 10 kWh Base = +15 kWh net)
+      const solar = CONFIG.powerSystem.solarGeneration;
+      const baseUse = CONFIG.powerSystem.baseConsumption;
+      state.res.power = this.clamp(state.res.power + solar - baseUse, 0, CONFIG.resources.power.max);
+      producedLog.push(`Solar Array Generation: +${solar} kWh Power`);
+      consumedLog.push(`Habitat Base Systems: -${baseUse} kWh Power`);
+
+      // STEP 3: Crew Consumption (4 Astronauts: Water 15.14 L, Oxygen 3.32 kg, Food 12.14 FP)
+      const reqW = CONFIG.dailyCrewConsumption.water;
+      const reqO = CONFIG.dailyCrewConsumption.oxygen;
+      const reqF = CONFIG.dailyCrewConsumption.food;
+
+      // Water consumption + dehydration consequence check
+      if (state.res.water < reqW) {
+        const deficit = fmt(reqW - state.res.water);
+        state.res.water = 0;
+        const pen = CONFIG.depletionPenalties.waterZeroStaminaPenalty;
+        state.res.stamina = this.clamp(state.res.stamina - pen, 0, 100);
+        warnings.push(`Water Depleted! Short by ${deficit} L — Crew suffered -${pen}% Stamina dehydration penalty.`);
+      } else {
+        state.res.water = this.clamp(state.res.water - reqW, 0, CONFIG.resources.water.max);
+      }
+      consumedLog.push(`Crew Water Use (4 Astronauts): -${reqW} L`);
+
+      // Oxygen consumption (lethal if reaches 0)
+      state.res.oxygen = this.clamp(state.res.oxygen - reqO, 0, CONFIG.resources.oxygen.max);
+      consumedLog.push(`Crew Oxygen Use (4 Astronauts): -${reqO} kg`);
+
+      // Food consumption + starvation consequence check
+      if (state.res.food < reqF) {
+        const deficit = fmt(reqF - state.res.food);
+        state.res.food = 0;
+        const pen = CONFIG.depletionPenalties.foodZeroStaminaPenalty;
+        state.res.stamina = this.clamp(state.res.stamina - pen, 0, 100);
+        warnings.push(`Food Depleted! Short by ${deficit} FP — Crew suffered -${pen}% Stamina hunger penalty.`);
+      } else {
+        state.res.food = this.clamp(state.res.food - reqF, 0, CONFIG.resources.food.max);
+      }
+      consumedLog.push(`Crew Food Use (4 Astronauts): -${reqF} FP`);
+
+      // STEP 4: Crop Growth
+      for (const bed of state.cropBeds) {
+        if (bed.status === "Growing") {
+          bed.remainingDays -= 1;
+          if (bed.remainingDays <= 0) {
+            bed.remainingDays = 0;
+            bed.status = "Mature";
+            maturedCrops.push(`${bed.name} has reached MATURE status and is ready to harvest!`);
+          }
+        }
+      }
+
+      // STEP 5: Daily Events
+      const event = CONFIG.dailyEvents[dayNum] || {
+        title: "Quiet Lunar Night",
+        description: "Habitat sensors remained nominal overnight.",
+        effects: {}
+      };
+      for (const [k, delta] of Object.entries(event.effects || {})) {
+        if (state.res[k] !== undefined) {
+          state.res[k] = this.clamp(state.res[k] + delta, 0, CONFIG.resources[k].max);
+        }
+      }
+
+      // STEP 6: Survival Validation
+      let failureReason = null;
+      if (state.res.oxygen <= 0) {
+        failureReason = "CRITICAL FAILURE: Cabin Oxygen reached 0 kg. Life support could not sustain the crew.";
+      } else if (state.res.integrity <= 0) {
+        failureReason = "CRITICAL FAILURE: Base Integrity reached 0%. Structural hull breach occurred.";
+      } else if (state.res.stamina <= 0) {
+        failureReason = "CRITICAL FAILURE: Astronaut Stamina reached 0%. Exhaustion prevented emergency operations.";
+      }
+
+      if (!failureReason && state.res.power <= 0) {
+        warnings.push("Power Reserve at 0 kWh: Powered machines are offline until solar arrays recharge.");
+      }
+
+      // STEP 7: Advance Day or Set Final State
+      const isFinalDay = dayNum >= CONFIG.totalDays;
+      if (failureReason) {
+        state.phase = "gameover";
+      } else if (isFinalDay) {
+        state.phase = "victory";
+      } else {
+        state.day = dayNum + 1;
+      }
+
+      const report = {
+        day: dayNum,
+        before: startSnapshot,
+        after: { ...state.res },
+        producedLog,
+        consumedLog,
+        maturedCrops,
+        event,
+        warnings,
+        failureReason,
+        isFinalDay
+      };
+
+      state.lastReport = report;
+      return report;
+    }
+  };
+
+
+  /* =========================================================================
+   * MODULE 4: AudioEngine (Glitch-Free Web Audio SFX, Zero Background Music)
+   * ========================================================================= */
+  const AudioEngine = (() => {
+    let ctx = null;
+    let masterGain = null;
+    let sfxGain = null;
+    let limiter = null;
+    const vol = { master: 0.75, sfx: 0.8 };
+
+    function clampGain(v) {
+      return Math.max(0.0005, Math.min(1, v));
+    }
+
+    function ensureContext() {
+      try {
+        if (!ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return null;
+          ctx = new AudioCtx();
+
+          limiter = ctx.createDynamicsCompressor();
+          limiter.threshold.value = -12;
+          limiter.knee.value = 12;
+          limiter.ratio.value = 8;
+          limiter.attack.value = 0.003;
+          limiter.release.value = 0.1;
+
+          masterGain = ctx.createGain();
+          sfxGain = ctx.createGain();
+
+          masterGain.gain.value = vol.master <= 0 ? 0.0005 : clampGain(vol.master);
+          sfxGain.gain.value = vol.sfx <= 0 ? 0.0005 : clampGain(vol.sfx);
+
+          sfxGain.connect(masterGain);
+          masterGain.connect(limiter);
+          limiter.connect(ctx.destination);
+        }
+        if (ctx.state === "suspended") {
+          ctx.resume().catch(() => {});
+        }
+        return ctx;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function playTone(freq, duration = 0.05, type = "triangle", peak = 0.13, delay = 0) {
+      if (vol.master <= 0 || vol.sfx <= 0) return;
+      const c = ensureContext();
+      if (!c) return;
+      try {
+        const now = c.currentTime + delay;
+        const osc = c.createOscillator();
+        const env = c.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+
+        const safePeak = clampGain(peak);
+        env.gain.setValueAtTime(0.0005, now);
+        env.gain.linearRampToValueAtTime(safePeak, now + 0.004);
+        env.gain.exponentialRampToValueAtTime(0.0005, now + Math.max(0.015, duration));
+
+        osc.connect(env);
+        env.connect(sfxGain);
+
+        osc.start(now);
+        osc.stop(now + duration + 0.012);
+        osc.onended = () => {
+          osc.disconnect();
+          env.disconnect();
+        };
+      } catch (e) {}
+    }
+
+    return {
+      setMaster(v) {
+        vol.master = Math.max(0, Math.min(1, v));
+        if (masterGain && ctx) {
+          masterGain.gain.setTargetAtTime(vol.master <= 0 ? 0.0005 : clampGain(vol.master), ctx.currentTime, 0.01);
+        }
+      },
+      setSfx(v) {
+        vol.sfx = Math.max(0, Math.min(1, v));
+        if (sfxGain && ctx) {
+          sfxGain.gain.setTargetAtTime(vol.sfx <= 0 ? 0.0005 : clampGain(vol.sfx), ctx.currentTime, 0.01);
+        }
+      },
+      getVolumes: () => ({ ...vol }),
+      click()    { playTone(560, 0.04, "triangle", 0.12); },
+      inspect()  { playTone(440, 0.04, "sine", 0.10, 0); playTone(620, 0.05, "sine", 0.10, 0.035); },
+      reserve()  { playTone(480, 0.05, "triangle", 0.13, 0); playTone(720, 0.07, "triangle", 0.14, 0.045); },
+      retrieve() { playTone(660, 0.05, "triangle", 0.12, 0); playTone(420, 0.07, "triangle", 0.12, 0.045); },
+      warn()     { playTone(210, 0.11, "sawtooth", 0.08, 0); playTone(170, 0.13, "sawtooth", 0.08, 0.10); },
+      door()     { playTone(260, 0.08, "sine", 0.13, 0); playTone(390, 0.11, "sine", 0.13, 0.07); },
+      step()     { playTone(130, 0.03, "sine", 0.06); },
+      type()     { playTone(690, 0.018, "triangle", 0.035); },
+      simTick(i) { playTone(320 + (i % 6) * 65, 0.05, "triangle", 0.09); },
+      thruster() { playTone(110, 0.14, "sawtooth", 0.06); },
+      success()  {
+        playTone(440, 0.07, "triangle", 0.13, 0);
+        playTone(554, 0.07, "triangle", 0.13, 0.07);
+        playTone(659, 0.16, "triangle", 0.15, 0.14);
+      }
+    };
+  })();
+
+
+  /* =========================================================================
+   * MODULE 5: PixelArt
+   * Pre-bakes all crisp pixel-art sprites & icons:
+   * - Kid Character (Casual clothes for Classroom & Bedroom)
+   * - Astronaut Spacesuit Character (Full pressurized suit + glass helmet +
+   *   life-support backpack for Spacecraft & Lunar Base!)
+   * - Commander Nova, Engineer, Scientist, and Mr. Okafor (Teacher)
+   * - Machines, Greenhouse Grow Beds, Consoles, Furniture, and HUD Icons
+   * ========================================================================= */
+  const PixelArt = (() => {
+    const sprites = {};
+    const icons = {};
+
+    function createCanvas(w, h) {
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      const ctx = c.getContext("2d");
+      ctx.imageSmoothingEnabled = false;
+      return { c, ctx };
+    }
+
+    function flipH(src) {
+      const { c, ctx } = createCanvas(src.width, src.height);
+      ctx.translate(src.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(src, 0, 0);
+      return c;
+    }
+
+    function bakeGrid(rows, palette) {
+      const h = rows.length;
+      const w = rows[0].length;
+      const { c, ctx } = createCanvas(w, h);
+      for (let y = 0; y < h; y++) {
+        const line = rows[y];
+        for (let x = 0; x < w; x++) {
+          const ch = line[x];
+          if (ch !== "." && palette[ch]) {
+            ctx.fillStyle = palette[ch];
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }
+      }
+      return c;
+    }
+
+    /* ----- 1. CASUAL KID SPRITES (16x24, Classroom & Bedroom) ----- */
+    const KID_PAL = {
+      O: "#181228",
+      H: "#1c192b",
+      h: "#3b3559",
+      S: "#f5c69c",
+      s: "#d99b70",
+      E: "#2ea84a",
+      W: "#ffffff",
+      R: "#e85a5a",
+      r: "#ba3b3d",
+      B: "#3b67c4",
+      b: "#27478f",
+      K: "#3b4459"
+    };
+
+    const KID_DOWN_IDLE = [
+      "....OOOOOOOO....",
+      "...OHHHHHHHHO...",
+      "..OHHhHHHHhHHO..",
+      ".OHHHHHHHHHHHHO.",
+      ".OHHSHHHHHHSHHO.",
+      ".OHSSSSSSSSSSHO.",
+      ".OHSOWSSSSOWSHO.",
+      ".OHSOESSSSOESHO.",
+      "..OSSSSSSSSSSO..",
+      "...OOssssssOO...",
+      "..ORRRRRRRRRRO..",
+      ".ORRRRRRRRRRRRO.",
+      ".ORrRRRRRRRRrRO.",
+      ".OSSRRRRRRRRSSO.",
+      ".OSSrRRRRRRrSSO.",
+      "..OOBBBBBBBBOO..",
+      "..OBBBBOBBBBBO..",
+      "..OBBbO.ObbBBO..",
+      "...OSSO.OSSO....",
+      "...OssO.OssO....",
+      "...OKKO.OKKO....",
+      "..OWWWO.OWWWO...",
+      "..OOOOO.OOOOO...",
+      "................"
+    ];
+
+    const KID_DOWN_WALK1 = [
+      "................",
+      "....OOOOOOOO....",
+      "...OHHHHHHHHO...",
+      "..OHHhHHHHhHHO..",
+      ".OHHHHHHHHHHHHO.",
+      ".OHHSHHHHHHSHHO.",
+      ".OHSSSSSSSSSSHO.",
+      ".OHSOWSSSSOWSHO.",
+      ".OHSOESSSSOESHO.",
+      "..OSSSSSSSSSSO..",
+      "...OOssssssOO...",
+      "..ORRRRRRRRRRO..",
+      ".OORRRRRRRRRRRO.",
+      ".OSSRrRRRRRRrSO.",
+      "..OOrRRRRRRRRO..",
+      "...OBBBBBBBBO...",
+      "..OBBBBO.OBBBO..",
+      "..OSSO....OSSO..",
+      "..OKKO....OKKO..",
+      ".OWWWO....OOOO..",
+      ".OOOOO..........",
+      "................",
+      "................",
+      "................"
+    ];
+
+    const KID_DOWN_WALK2 = [
+      "................",
+      "....OOOOOOOO....",
+      "...OHHHHHHHHO...",
+      "..OHHhHHHHhHHO..",
+      ".OHHHHHHHHHHHHO.",
+      ".OHHSHHHHHHSHHO.",
+      ".OHSSSSSSSSSSHO.",
+      ".OHSOWSSSSOWSHO.",
+      ".OHSOESSSSOESHO.",
+      "..OSSSSSSSSSSO..",
+      "...OOssssssOO...",
+      "..ORRRRRRRRRRO..",
+      ".ORRRRRRRRRRROO.",
+      ".OSrRRRRRRrRSSO.",
+      "..ORRRRRRRRrOO..",
+      "...OBBBBBBBBO...",
+      "..OBBBO.OBBBBO..",
+      "..OSSO....OSSO..",
+      "..OKKO....OKKO..",
+      "..OOOO....OWWWO.",
+      "..........OOOOO.",
+      "................",
+      "................",
+      "................"
+    ];
+
+    const KID_UP_IDLE = [
+      "....OOOOOOOO....",
+      "...OHHHHHHHHO...",
+      "..OHHhHHHHhHHO..",
+      ".OHHHHHHHHHHHHO.",
+      ".OHHHHHHHHHHHHO.",
+      ".OHHHHHHHHHHHHO.",
+      ".OHHHHHHHHHHHHO.",
+      ".OHHhHHHHHHhHHO.",
+      "..OHHHHHHHHHHO..",
+      "...OOOOOOOOOO...",
+      "..ORRRRRRRRRRO..",
+      ".ORRRRRRRRRRRRO.",
+      ".ORrRRRRRRRRrRO.",
+      ".OSSRRRRRRRRSSO.",
+      ".OSSrRRRRRRrSSO.",
+      "..OOBBBBBBBBOO..",
+      "..OBBBBOBBBBBO..",
+      "..OBBbO.ObbBBO..",
+      "...OSSO.OSSO....",
+      "...OssO.OssO....",
+      "...OKKO.OKKO....",
+      "..OWWWO.OWWWO...",
+      "..OOOOO.OOOOO...",
+      "................"
+    ];
+
+    const KID_RIGHT_IDLE = [
+      "....OOOOOOOO....",
+      "...OHHHHHHHHO...",
+      "..OHHhHHHHHHHO..",
+      "..OHHHHHHHHHHHO.",
+      "..OHHHHHHSHHHHO.",
+      "..OHHHHHSSSSSHO.",
+      "..OHHHHHSOWSSHO.",
+      "..OHHHHHSOESSHO.",
+      "...OHHHHSSSSSO..",
+      "....OOOOsssOO...",
+      "....ORRRRRRRO...",
+      "...ORRRRRRRRRO..",
+      "...ORRRSSRRRRO..",
+      "...ORRRSSRRRRO..",
+      "....OOOsSOOrO...",
+      "....OBBBBBBBO...",
+      "....OBBbOBbBO...",
+      ".....OSSOSSO....",
+      ".....OssOssO....",
+      ".....OKKOKKO....",
+      "....OWWWOWWWO...",
+      "....OOOOOOOOO...",
+      "................",
+      "................"
+    ];
+
+    const KID_RIGHT_WALK1 = [
+      "................",
+      "....OOOOOOOO....",
+      "...OHHHHHHHHO...",
+      "..OHHhHHHHHHHO..",
+      "..OHHHHHHHHHHHO.",
+      "..OHHHHHHSHHHHO.",
+      "..OHHHHHSSSSSHO.",
+      "..OHHHHHSOWSSHO.",
+      "..OHHHHHSOESSHO.",
+      "...OHHHHSSSSSO..",
+      "....OOOOsssOO...",
+      "....ORRRRRRRO...",
+      "...ORRRRRRRRRO..",
+      "...ORRRRRSSRO...",
+      "....OOrRROsSO...",
+      "....OBBBBBBO....",
+      "...OBBBO.OBBO...",
+      "..OSSO....OSSO..",
+      "..OKKO....OKKO..",
+      ".OWWWO...OWWWO..",
+      ".OOOOO...OOOOO..",
+      "................",
+      "................",
+      "................"
+    ];
+
+    const KID_RIGHT_WALK2 = [
+      "................",
+      "....OOOOOOOO....",
+      "...OHHHHHHHHO...",
+      "..OHHhHHHHHHHO..",
+      "..OHHHHHHHHHHHO.",
+      "..OHHHHHHSHHHHO.",
+      "..OHHHHHSSSSSHO.",
+      "..OHHHHHSOWSSHO.",
+      "..OHHHHHSOESSHO.",
+      "...OHHHHSSSSSO..",
+      "....OOOOsssOO...",
+      "....ORRRRRRRO...",
+      "...ORRRRRRRRRO..",
+      "...OSSRrRRRRRO..",
+      "...OsSOORrROO...",
+      "....OBBBBBBO....",
+      "...OBBO.OBBBO...",
+      "..OSSO...OSSO...",
+      "..OKKO...OKKO...",
+      "..OWWWO..OWWWO..",
+      "..OOOOO..OOOOO..",
+      "................",
+      "................",
+      "................"
+    ];
+
+    /* ----- 2. ASTRONAUT SPACESUIT SPRITES (18x26, Spacecraft & Moon) -----
+     * Features: Clear glass space helmet with sky-blue rim & specular highlight,
+     * visible black hair & green eyes inside helmet, white/silver pressurized
+     * suit, mission blue/orange chest life-support module, white gloves,
+     * PLSS backpack, and weighted lunar boots! */
+    const SUIT_PAL = {
+      O: "#141026", // Dark outline
+      W: "#f8fafc", // Pure white pressurized suit
+      w: "#cbd5e1", // Silver-gray suit shading
+      G: "#bae6fd", // Glass helmet tint
+      g: "#7dd3fc", // Helmet inner rim
+      H: "#1c192b", // Black hair inside helmet
+      S: "#f5c69c", // Warm face skin inside helmet
+      E: "#2ea84a", // Green eyes
+      B: "#2563eb", // Mission blue collar & chest trim
+      A: "#f97316", // ASTRA orange mission patch & stripes
+      K: "#475569"  // Lunar boot soles & pack trim
+    };
+
+    const SUIT_DOWN_IDLE = [
+      ".....OOOOOOOO.....",
+      "...OOGGGGGGGGOO...",
+      "..OGGWWWWWWWWGGO..",
+      ".OGWWHHHHHHHHWWGO.",
+      ".OGWHHSHHHHSHHWGO.",
+      ".OGWHSSSSSSSSHWGO.",
+      ".OGWHSOWSSOWSHWGO.",
+      ".OGWHSOESSSOESWGO.",
+      ".OGWWSSSSSSSSWWGO.",
+      "..OGGggggggggGGO..",
+      "...OOBBBBBBBBOO...",
+      "..OWWWWWWWWWWWWO..",
+      ".OWWBBAAAAAAABWWO.",
+      ".OWWWBWWAAWWBWWWO.",
+      ".OWwWWBBBBBBWWwWO.",
+      ".OwwWWWWWWWWWWwwO.",
+      "..OOWWWWWWWWWWO...",
+      "...OWWWWOOWWWWO...",
+      "...OWwwO..OwwWO...",
+      "...OWWWO..OWWWO...",
+      "...OAAAO..OAAAO...",
+      "...OKKKO..OKKKO...",
+      "..OKKKKKOOKKKKKO..",
+      "..OOOOOO..OOOOOO..",
+      "..................",
+      ".................."
+    ];
+
+    const SUIT_DOWN_WALK1 = [
+      "..................",
+      ".....OOOOOOOO.....",
+      "...OOGGGGGGGGOO...",
+      "..OGGWWWWWWWWGGO..",
+      ".OGWWHHHHHHHHWWGO.",
+      ".OGWHHSHHHHSHHWGO.",
+      ".OGWHSSSSSSSSHWGO.",
+      ".OGWHSOWSSOWSHWGO.",
+      ".OGWHSOESSSOESWGO.",
+      ".OGWWSSSSSSSSWWGO.",
+      "..OGGggggggggGGO..",
+      "...OOBBBBBBBBOO...",
+      "..OWWWWWWWWWWWWO..",
+      ".OOWWBBAAAAABWWWO.",
+      ".OWWWBWWAAWWBWwWO.",
+      "..OOWWBBBBBBWOO...",
+      "...OWWWWWWWWWWO...",
+      "..OWWWWO..OWWWO...",
+      "..OAAAO....OAAAO..",
+      "..OKKKO....OKKKO..",
+      ".OKKKKKO...OOOOO..",
+      ".OOOOOO...........",
+      "..................",
+      "..................",
+      "..................",
+      ".................."
+    ];
+
+    const SUIT_DOWN_WALK2 = [
+      "..................",
+      ".....OOOOOOOO.....",
+      "...OOGGGGGGGGOO...",
+      "..OGGWWWWWWWWGGO..",
+      ".OGWWHHHHHHHHWWGO.",
+      ".OGWHHSHHHHSHHWGO.",
+      ".OGWHSSSSSSSSHWGO.",
+      ".OGWHSOWSSOWSHWGO.",
+      ".OGWHSOESSSOESWGO.",
+      ".OGWWSSSSSSSSWWGO.",
+      "..OGGggggggggGGO..",
+      "...OOBBBBBBBBOO...",
+      "..OWWWWWWWWWWWWO..",
+      ".OWWWBAAAAABBWWO..",
+      ".OwWWBWWAAWWBWWWO.",
+      "...OOWBBBBBBWWOO..",
+      "...OWWWWWWWWWWO...",
+      "..OWWWO..OWWWWO...",
+      "..OAAAO....OAAAO..",
+      "..OKKKO....OKKKO..",
+      ".OOOOO...OKKKKKO..",
+      "..........OOOOOO..",
+      "..................",
+      "..................",
+      "..................",
+      ".................."
+    ];
+
+    // Back view prominently features the white/gray PLSS Life-Support Backpack!
+    const SUIT_UP_IDLE = [
+      ".....OOOOOOOO.....",
+      "...OOWWWWWWWWO0...",
+      "..OWWWWWWWWWWWWO..",
+      ".OWWWWWWWWWWWWWWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      "..OOWWWWWWWWWWOO..",
+      "..OOBBBBBBBBBBOO..",
+      ".OOWWWWWWWWWWWWOO.",
+      ".OWWwwwwwwwwwwWWO.",
+      ".OWWwBBBBBBBBwWWO.",
+      ".OWWwBAAAAAAAwWWO.",
+      ".OWWwBKKKKKKKwWWO.",
+      ".OwwWwwwwwwwwwWwwO",
+      "..OOWWWWWWWWWWOO..",
+      "...OWWWWOOWWWWO...",
+      "...OWwwO..OwwWO...",
+      "...OAAAO..OAAAO...",
+      "...OKKKO..OKKKO...",
+      "..OKKKKKOOKKKKKO..",
+      "..OOOOOO..OOOOOO..",
+      "..................",
+      ".................."
+    ];
+
+    const SUIT_UP_WALK1 = [
+      "..................",
+      ".....OOOOOOOO.....",
+      "...OOWWWWWWWWOO...",
+      "..OWWWWWWWWWWWWO..",
+      ".OWWWWWWWWWWWWWWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      "..OOWWWWWWWWWWOO..",
+      "..OOBBBBBBBBBBOO..",
+      ".OOWWWWWWWWWWWWOO.",
+      ".OWWwwwwwwwwwwWWO.",
+      ".OWWwBBBBBBBBwWWO.",
+      ".OWWwBAAAAAAAwWWO.",
+      ".OwwWwwwwwwwwwWOO.",
+      "..OOWWWWWWWWWWOO..",
+      "..OWWWWO..OWWWO...",
+      "..OAAAO....OAAAO..",
+      "..OKKKO....OKKKO..",
+      ".OKKKKKO...OOOOO..",
+      ".OOOOOO...........",
+      "..................",
+      "..................",
+      "..................",
+      ".................."
+    ];
+
+    const SUIT_UP_WALK2 = [
+      "..................",
+      ".....OOOOOOOO.....",
+      "...OOWWWWWWWWOO...",
+      "..OWWWWWWWWWWWWO..",
+      ".OWWWWWWWWWWWWWWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      ".OWwWWWWWWWWWWwWO.",
+      "..OOWWWWWWWWWWOO..",
+      "..OOBBBBBBBBBBOO..",
+      ".OOWWWWWWWWWWWWOO.",
+      ".OWWwwwwwwwwwwWWO.",
+      ".OWWwBBBBBBBBwWWO.",
+      ".OWWwBAAAAAAAwWWO.",
+      "..OOWwwwwwwwwwWwwO",
+      "..OOWWWWWWWWWWOO..",
+      "..OWWWO..OWWWWO...",
+      "..OAAAO....OAAAO..",
+      "..OKKKO....OKKKO..",
+      ".OOOOO...OKKKKKO..",
+      "..........OOOOOO..",
+      "..................",
+      "..................",
+      "..................",
+      ".................."
+    ];
+
+    // Right-facing astronaut profile showing PLSS backpack on left & glass visor on right
+    const SUIT_RIGHT_IDLE = [
+      ".....OOOOOOOO.....",
+      "...OOWWWWWWWGOO...",
+      "..OWWWWWWWWWWGGO..",
+      "..OWWWWWWHHHHWWGO.",
+      "..OWWWWWWHHSHHWGO.",
+      "..OWWWWWWHSSSSWGO.",
+      "..OWWWWWWHSOESWGO.",
+      "..OWWWWWWHSSSSWGO.",
+      "...OWWWWWWggggGO..",
+      "....OOBBBBBBBBO...",
+      "..OOOWWWWWWWWWWO..",
+      ".OwwOWWWWWWWAAWO..",
+      ".OwwOWWWWWWWAWWO..",
+      ".OwwOWWWWWWwWWWO..",
+      ".OwwOWWWWWWwWWWO..",
+      "..OOOWWWWWWWwWO...",
+      "....OWWWWWWWWO....",
+      ".....OWWWOOWWO....",
+      ".....OWwwOwwWO....",
+      ".....OAAAOAAAO....",
+      ".....OKKKOKKKO....",
+      "....OKKKKKKKKOO...",
+      "....OOOOOOOOOO....",
+      "..................",
+      "..................",
+      ".................."
+    ];
+
+    const SUIT_RIGHT_WALK1 = [
+      "..................",
+      ".....OOOOOOOO.....",
+      "...OOWWWWWWWGOO...",
+      "..OWWWWWWWWWWGGO..",
+      "..OWWWWWWHHHHWWGO.",
+      "..OWWWWWWHHSHHWGO.",
+      "..OWWWWWWHSSSSWGO.",
+      "..OWWWWWWHSOESWGO.",
+      "..OWWWWWWHSSSSWGO.",
+      "...OWWWWWWggggGO..",
+      "....OOBBBBBBBBO...",
+      "..OOOWWWWWWWWWWO..",
+      ".OwwOWWWWWWWAAWO..",
+      ".OwwOWWWWWWWwWWO..",
+      ".OwwOWWWWWWwWWWO..",
+      "..OOOWWWWWWWwWO...",
+      "....OWWWWWWWWO....",
+      "...OWWWOO.OWWWO...",
+      "..OAAAO....OAAAO..",
+      "..OKKKO....OKKKO..",
+      ".OKKKKKO..OKKKKKO.",
+      ".OOOOOO...OOOOOO..",
+      "..................",
+      "..................",
+      "..................",
+      ".................."
+    ];
+
+    const SUIT_RIGHT_WALK2 = [
+      "..................",
+      ".....OOOOOOOO.....",
+      "...OOWWWWWWWGOO...",
+      "..OWWWWWWWWWWGGO..",
+      "..OWWWWWWHHHHWWGO.",
+      "..OWWWWWWHHSHHWGO.",
+      "..OWWWWWWHSSSSWGO.",
+      "..OWWWWWWHSOESWGO.",
+      "..OWWWWWWHSSSSWGO.",
+      "...OWWWWWWggggGO..",
+      "....OOBBBBBBBBO...",
+      "..OOOWWWWWWWWWWO..",
+      ".OwwOWWWWWWWAAWO..",
+      ".OwwOWWWwWWWWWO...",
+      ".OwwOWWwWWWWWWO...",
+      "..OOOWWWwWWWWWO...",
+      "....OWWWWWWWWO....",
+      "...OWWWO.OWWWOO...",
+      "..OAAAO...OAAAO...",
+      "..OKKKO...OKKKO...",
+      ".OKKKKKO.OKKKKKO..",
+      ".OOOOOO..OOOOOO...",
+      "..................",
+      "..................",
+      "..................",
+      ".................."
+    ];
+
+    /* ----- 3. CREW NPC SPACESUITS (Commander Nova, Engineer, Scientist) ----- */
+    function bakeCrewAstronaut(trimColor, visorColor, hairColor) {
+      const pal = {
+        O: "#141026",
+        W: "#f8fafc",
+        w: "#cbd5e1",
+        G: "#bae6fd",
+        V: visorColor,
+        H: hairColor,
+        S: "#e8b48a",
+        E: "#1e293b",
+        T: trimColor,
+        K: "#475569"
+      };
+      const rows = [
+        ".....OOOOOOOO.....",
+        "...OOGGGGGGGGOO...",
+        "..OGGWWWWWWWWGGO..",
+        ".OGWWHHHHHHHHWWGO.",
+        ".OGWHSSSSSSSSHWGO.",
+        ".OGWHSOESSSOESWGO.",
+        ".OGWWSSSSSSSSWWGO.",
+        "..OGGVVVVVVVVGGO..",
+        "...OOTTTTTTTTOO...",
+        "..OWWWWWWWWWWWWO..",
+        ".OWWTTTTTTTTTTWWO.",
+        ".OWWWTWWWWWWWTWWO.",
+        ".OWwWWTTTTTTWWwWO.",
+        ".OwwWWWWWWWWWWwwO.",
+        "..OOWWWWWWWWWWO...",
+        "...OWWWWOOWWWWO...",
+        "...OWwwO..OwwWO...",
+        "...OTTT0..OTTT0...",
+        "...OKKKO..OKKKO...",
+        "..OKKKKKOOKKKKKO..",
+        "..OOOOOO..OOOOOO..",
+        ".................."
+      ];
+      return bakeGrid(rows, pal);
+    }
+
+    /* ----- 4. CLASSROOM TEACHER (Mr. Okafor) ----- */
+    function bakeTeacher() {
+      const pal = {
+        O: "#181228",
+        G: "#7d8594",
+        S: "#c98b5b",
+        W: "#ffffff",
+        T: "#2b5c8f",
+        P: "#2c3345"
+      };
+      const rows = [
+        "....OOOOOOOO....",
+        "...OGGGGGGGGO...",
+        "..OGGGGGGGGGGO..",
+        "..OGSSSSSSSSGO..",
+        "..OSOWWSSWWSOO..",
+        "..OSSSSSSSSSO...",
+        "...OSSSSSSSO....",
+        "....OOOOOOO.....",
+        "..OTTTWWWTTTTO..",
+        ".OTTTTWWWTTTTTO.",
+        ".OTTTTTTTTTTTTO.",
+        ".OSSTTTTTTTTSSO.",
+        ".OSSTTTTTTTTSSO.",
+        "..OOTTTTTTTTOO..",
+        "...OPPPPOPPPO...",
+        "...OPPPPO.PPPO..",
+        "...OPPPPO.PPPO..",
+        "...OPPPPO.PPPO..",
+        "...OOOOOO.OOOO..",
+        "................",
+        "................",
+        "................",
+        "................",
+        "................"
+      ];
+      sprites.teacher = bakeGrid(rows, pal);
+    }
+
+    /* ----- 5. MACHINES, CONSOLES & PROPS ----- */
+    function bakeMachine(type, frame) {
+      const { c, ctx } = createCanvas(64, 42);
+      const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+
+      px(4, 6, 56, 34, "#181228");
+      px(6, 8, 52, 30, "#8d9bb5");
+      px(6, 8, 52, 4, "#cad6eb");
+      px(6, 34, 52, 4, "#5d6982");
+
+      px(1, 16, 4, 14, "#181228");
+      px(2, 17, 3, 12, "#60a5fa");
+      px(59, 16, 4, 14, "#181228");
+      px(59, 17, 3, 12, "#60a5fa");
+
+      if (type === "water") {
+        px(10, 13, 18, 19, "#181228");
+        px(11, 14, 16, 17, "#2788c9");
+        px(11, 14, 16, 5, "#60c4ff");
+        px(36, 13, 18, 19, "#181228");
+        px(37, 14, 16, 17, "#2788c9");
+        px(37, 14, 16, 5, "#60c4ff");
+        const by = frame === 0 ? 24 : 19;
+        px(15, by, 2, 2, "#ffffff");
+        px(21, by - 3, 2, 2, "#bdf0ff");
+        px(42, by - 1, 2, 2, "#ffffff");
+        px(47, by + 2, 2, 2, "#bdf0ff");
+        px(30, 15, 4, 14, "#181228");
+        px(31, 16, 2, 4, "#4fd190");
+      } else if (type === "oxygen") {
+        px(10, 13, 26, 19, "#181228");
+        px(11, 14, 24, 17, "#1e7a56");
+        px(13, 16, 20, 13, "#4fd190");
+        const ox = frame === 0 ? 16 : 20;
+        px(ox, 20, 3, 3, "#ffffff");
+        px(ox + 7, 24, 2, 2, "#d6ffeb");
+        px(40, 13, 14, 19, "#181228");
+        for (let vy = 15; vy <= 28; vy += 4) {
+          px(42, vy, 10, 2, frame === 0 ? "#bdf5dc" : "#78c9a5");
+        }
+      } else if (type === "repair") {
+        px(10, 13, 44, 19, "#181228");
+        px(11, 14, 42, 17, "#1e293b");
+        px(14, 17, 16, 11, "#2563eb");
+        px(16, 19, 12, 7, "#93c5fd");
+        px(34, 17, 16, 4, frame === 0 ? "#ffd466" : "#f97316");
+        px(34, 24, 16, 4, "#4fd190");
+      } else if (type === "galley") {
+        px(10, 13, 44, 19, "#181228");
+        px(11, 14, 42, 17, "#334155");
+        px(13, 16, 17, 13, "#e67432");
+        px(15, 18, 13, 9, "#fed7aa");
+        px(34, 16, 17, 13, "#2788c9");
+        px(36, 18, 13, 9, "#bae6fd");
+      }
+
+      px(52, 9, 4, 2, frame === 0 ? "#4fd190" : "#ffd466");
+      return c;
+    }
+
+    function bakeGrowBed(status, frame) {
+      const { c, ctx } = createCanvas(54, 34);
+      const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+
+      px(2, 6, 50, 26, "#181228");
+      px(4, 8, 46, 22, "#64748b");
+      px(6, 10, 42, 18, "#26332b");
+      px(6, 10, 42, 2, frame === 0 ? "#f472b6" : "#fbcfe8"); // Pink grow LEDs
+
+      if (status === "Growing") {
+        for (let sx = 12; sx <= 40; sx += 9) {
+          px(sx, 21, 2, 5, "#4fd190");
+          px(sx - 2, 20, 2, 2, "#86efac");
+          px(sx + 2, 20, 2, 2, "#86efac");
+        }
+      } else if (status === "Mature") {
+        for (let sx = 11; sx <= 39; sx += 9) {
+          px(sx, 17, 4, 9, "#16a34a");
+          px(sx - 2, 16, 8, 5, "#4fd190");
+          px(sx, 15, 3, 3, "#ef4444"); // Ripe lunar tomatoes!
+          px(sx + 3, 18, 2, 2, "#ffd466");
+        }
+      }
+      return c;
+    }
+
+    function bakeConsole(frame) {
+      const { c, ctx } = createCanvas(56, 34);
+      const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+      px(46, 0, 2, 7, "#181228");
+      px(45, 0, 4, 2, frame === 0 ? "#ff5e5e" : "#ffd466");
+      px(2, 6, 52, 26, "#181228");
+      px(4, 8, 48, 22, "#3b476b");
+      px(4, 8, 48, 3, "#6b7db3");
+      px(8, 11, 26, 13, "#120d24");
+      px(10, 13, 22, 9, "#164e63");
+      px(12, 15, 8, 2, "#4fd190");
+      px(12, 18, 14, 2, "#ffd466");
+      px(37, 12, 5, 4, "#e85a5a");
+      px(44, 12, 5, 4, "#38a3e8");
+      px(37, 18, 12, 4, "#ffd466");
+      return c;
+    }
+
+    function bakeProps() {
+      // Lunar Viewport Window
+      {
+        const { c, ctx } = createCanvas(36, 42);
+        const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+        px(0, 0, 36, 42, "#181228");
+        px(2, 2, 32, 38, "#6e7a94");
+        px(5, 5, 26, 32, "#090b18");
+        px(9, 10, 2, 2, "#ffffff");
+        px(24, 8, 2, 2, "#ffd466");
+        px(16, 15, 1, 1, "#ffffff");
+        px(5, 27, 26, 10, "#9aa3b8");
+        px(9, 30, 6, 3, "#6d758a");
+        px(21, 32, 7, 3, "#6d758a");
+        sprites.window = c;
+      }
+
+      // Habitat Schematic Map
+      {
+        const { c, ctx } = createCanvas(48, 28);
+        const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+        px(0, 0, 48, 28, "#181228");
+        px(2, 2, 44, 24, "#1e2c42");
+        px(19, 10, 10, 8, "#ffd466");
+        px(8, 5, 7, 5, "#38a3e8");
+        px(33, 5, 7, 5, "#e86f52");
+        px(8, 18, 7, 5, "#f2c230");
+        px(33, 18, 7, 5, "#4fd190");
+        sprites.map = c;
+      }
+
+      // Classroom Chalkboard
+      {
+        const { c, ctx } = createCanvas(160, 42);
+        const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+        px(0, 0, 160, 42, "#3b281c");
+        px(4, 4, 152, 34, "#1f4d36");
+        px(12, 12, 64, 3, "#f8fafc");
+        px(12, 20, 96, 2, "#ffd466");
+        px(12, 26, 52, 2, "#93c5fd");
+        px(124, 12, 16, 16, "#94a3b8"); // Moon sketch
+        px(128, 16, 4, 4, "#64748b");
+        sprites.chalkboard = c;
+      }
+
+      // School Desk
+      {
+        const { c, ctx } = createCanvas(42, 24);
+        const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+        px(0, 0, 42, 24, "#181228");
+        px(2, 2, 38, 16, "#b48252");
+        px(2, 18, 38, 4, "#7c5330");
+        px(8, 5, 10, 7, "#ffffff"); // Notebook
+        px(24, 7, 6, 2, "#ffd466"); // Pencil
+        sprites.school_desk = c;
+      }
+
+      // Bedroom Bed
+      {
+        const { c, ctx } = createCanvas(56, 76);
+        const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+        px(0, 0, 56, 76, "#181228");
+        px(3, 3, 50, 70, "#475569");
+        px(6, 6, 44, 18, "#f8fafc"); // Pillow
+        px(8, 8, 40, 14, "#e2e8f0");
+        px(6, 24, 44, 46, "#3b67c4"); // Starry blue blanket
+        px(6, 24, 44, 6, "#93c5fd");
+        px(18, 38, 4, 4, "#ffd466");
+        px(34, 52, 4, 4, "#ffd466");
+        sprites.bed = c;
+      }
+
+      // Spacecraft Bunk Pod
+      {
+        const { c, ctx } = createCanvas(56, 38);
+        const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+        px(0, 0, 56, 38, "#181228");
+        px(2, 2, 52, 34, "#64748b");
+        px(5, 5, 46, 28, "#1e293b");
+        px(8, 8, 14, 22, "#e2e8f0");
+        px(22, 8, 26, 22, "#2563eb");
+        sprites.bunk_pod = c;
+      }
+
+      // Spacecraft Cockpit Viewscreen
+      {
+        const { c, ctx } = createCanvas(120, 34);
+        const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+        px(0, 0, 120, 34, "#181228");
+        px(3, 3, 114, 28, "#090b18");
+        px(14, 9, 2, 2, "#ffffff");
+        px(38, 18, 2, 2, "#ffd466");
+        px(88, 11, 2, 2, "#ffffff");
+        px(102, 21, 2, 2, "#38bdf8");
+        // Moon approaching in viewscreen!
+        px(54, 10, 14, 14, "#94a3b8");
+        px(57, 13, 4, 4, "#64748b");
+        px(62, 18, 3, 3, "#64748b");
+        sprites.cockpit_screen = c;
+      }
+
+      // Water Tank, Battery Bank, O2 Canisters
+      {
+        const { c, ctx } = createCanvas(28, 34);
+        const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+        px(3, 2, 22, 30, "#181228");
+        px(5, 4, 18, 26, "#4da6d6");
+        px(12, 8, 4, 18, "#181228");
+        px(13, 12, 2, 13, "#bdf0ff");
+        sprites.water_tank = c;
+      }
+      {
+        const { c, ctx } = createCanvas(30, 32);
+        const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+        px(2, 4, 26, 26, "#181228");
+        px(4, 6, 22, 22, "#3a4259");
+        px(7, 9, 6, 16, "#f2c230");
+        px(17, 9, 6, 16, "#f2c230");
+        sprites.battery_bank = c;
+      }
+      {
+        const { c, ctx } = createCanvas(28, 26);
+        const px = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x, y, w, h); };
+        px(3, 4, 10, 20, "#181228");
+        px(5, 6, 6, 16, "#4fd190");
+        px(15, 4, 10, 20, "#181228");
+        px(17, 6, 6, 16, "#4fd190");
+        sprites.o2_tanks = c;
+      }
+    }
+
+    /* ----- 6. UI DATA-URL ICONS (Zero OS Emojis) ----- */
+    function bakeIcons() {
+      icons.food = bakeGrid([
+        ".......OO.......",
+        "......OGGO......",
+        ".....OGGGO......",
+        "...OOOOOOOOOO...",
+        "..ORRRRRRRRRRO..",
+        ".ORWWRRRRRRRRRO.",
+        ".ORWRRRRRRRRRRO.",
+        ".ORRRRRRRRRRRRO.",
+        ".ORRRRRRRRRRRRO.",
+        ".ORRRRRRRRRrRRO.",
+        "..ORRRRRRRrRRO..",
+        "..ORRRRRRrRRRO..",
+        "...ORRRRRRRRO...",
+        "....OOORROOO....",
+        "................",
+        "................"
+      ], { O: "#181228", G: "#4fd190", R: "#e85a5a", r: "#ba3b3d", W: "#ffffff" }).toDataURL();
+
+      icons.water = bakeGrid([
+        ".......OO.......",
+        "......OBBO......",
+        ".....OBBBBO.....",
+        "....OBBBBBBO....",
+        "...OBWBBBBBBBO..",
+        "...OBWBBBBBBBO..",
+        "..OBWBBBBBBBBBO.",
+        "..OBBBBBBBBBbBO.",
+        "..OBBBBBBBBBbBO.",
+        "..OBBBBBBBBbBBO.",
+        "...OBBBBBBbBBO..",
+        "....OBBBBBBBO...",
+        ".....OOOOOOO....",
+        "................",
+        "................",
+        "................"
+      ], { O: "#181228", B: "#38a3e8", b: "#1e6fa8", W: "#ffffff" }).toDataURL();
+
+      icons.oxygen = bakeGrid([
+        "....OOOOOO......",
+        "...OMMMMMMO.....",
+        "..OMWWMMMMMO....",
+        "..OMWMMMMMMMO...",
+        "..OMMMMMMMmMO...",
+        "...OMMMMMmMO.OO.",
+        "....OOOOOO..OMMO",
+        "..OOOOO....OMWMO",
+        ".OMMMMMO...OMMMO",
+        ".OMWMMMO....OOO.",
+        ".OMMMMMO........",
+        "..OOOOO.........",
+        "................",
+        "................",
+        "................",
+        "................"
+      ], { O: "#181228", M: "#4fd190", m: "#289660", W: "#ffffff" }).toDataURL();
+
+      icons.power = bakeGrid([
+        "......OOOOOO....",
+        ".....OYYYYYO....",
+        "....OYYYYYO.....",
+        "...OYYYYYO......",
+        "..OYYYYYYYYOO...",
+        "..OYYYYYYYYYO...",
+        "...OOOOYYYYO....",
+        "......OYYYO.....",
+        ".....OYYYO......",
+        "....OYYYO.......",
+        "...OYYYO........",
+        "...OOOO.........",
+        "................",
+        "................",
+        "................",
+        "................"
+      ], { O: "#181228", Y: "#ffd466" }).toDataURL();
+
+      icons.stamina = bakeGrid([
+        "................",
+        "..OOOO....OOOO..",
+        ".OPPPPO..OPPPPO.",
+        "OPWWPPPOOPPPPPPO",
+        "OPWPPPPPPPPPPPPO",
+        "OPPPPPPPPPPPPPPO",
+        ".OPPPPPPPPPPPPO.",
+        "..OPPPPPPPPPPO..",
+        "...OPPPPPPPPO...",
+        "....OPPPPPPO....",
+        ".....OPPPPO.....",
+        "......OPPO......",
+        ".......OO.......",
+        "................",
+        "................",
+        "................"
+      ], { O: "#181228", P: "#f25c78", W: "#ffffff" }).toDataURL();
+
+      icons.integrity = bakeGrid([
+        "..OOOOOOOOOOOO..",
+        ".OSSSSSSSSSSSSO.",
+        ".OSWWWWSSSSSSSO.",
+        ".OSWSSSSSSSSSSO.",
+        ".OSSSSSSSSSSSSO.",
+        ".OSSSSSSSSSSSSO.",
+        "..OSSSSSSSSSSO..",
+        "..OSSSSSSSSSSO..",
+        "...OSSSSSSSSO...",
+        "....OSSSSSSO....",
+        ".....OSSSSO.....",
+        "......OSSO......",
+        ".......OO.......",
+        "................",
+        "................",
+        "................"
+      ], { O: "#181228", S: "#7a9ef5", W: "#ffffff" }).toDataURL();
+
+      icons.warn = bakeGrid([
+        ".......OO.......",
+        "......OYYO......",
+        ".....OYYYYO.....",
+        "....OYYOOYYO....",
+        "...OYYYOOYYYO...",
+        "..OYYYYOOYYYYO..",
+        ".OYYYYYOOYYYYYO.",
+        ".OYYYYYYYYYYYYO.",
+        "OYYYYYYOOYYYYYYO",
+        "OYYYYYYYYYYYYYYO",
+        "OOOOOOOOOOOOOOOO",
+        "................",
+        "................",
+        "................",
+        "................",
+        "................"
+      ], { O: "#181228", Y: "#ffd466" }).toDataURL();
+
+      icons.check = bakeGrid([
+        "................",
+        ".............OO.",
+        "............OGGO",
+        "...........OGGO.",
+        "..........OGGO..",
+        ".OO......OGGO...",
+        "OGGO....OGGO....",
+        ".OGGO..OGGO.....",
+        "..OGGOOGGO......",
+        "...OGGGGO.......",
+        "....OGGO........",
+        ".....OO.........",
+        "................",
+        "................",
+        "................",
+        "................"
+      ], { O: "#181228", G: "#4fd190" }).toDataURL();
+
+      icons.kid         = sprites.kid_down_idle.toDataURL();
+      icons.suit        = sprites.suit_down_idle.toDataURL();
+      icons.teacher     = sprites.teacher.toDataURL();
+      icons.nova        = sprites.npc_nova.toDataURL();
+      icons.engineer    = sprites.npc_engineer.toDataURL();
+      icons.scientist   = sprites.npc_scientist.toDataURL();
+      icons.mach_water  = sprites.mach_water_0.toDataURL();
+      icons.mach_oxygen = sprites.mach_oxygen_0.toDataURL();
+      icons.mach_repair = sprites.mach_repair_0.toDataURL();
+      icons.mach_galley = sprites.mach_galley_0.toDataURL();
+      icons.grow_bed    = sprites.bed_Mature_0.toDataURL();
+      icons.console     = sprites.console_0.toDataURL();
+    }
+
+    function init() {
+      // Casual kid
+      sprites.kid_down_idle  = bakeGrid(KID_DOWN_IDLE, KID_PAL);
+      sprites.kid_down_walk1 = bakeGrid(KID_DOWN_WALK1, KID_PAL);
+      sprites.kid_down_walk2 = bakeGrid(KID_DOWN_WALK2, KID_PAL);
+      sprites.kid_up_idle    = bakeGrid(KID_UP_IDLE, KID_PAL);
+      sprites.kid_up_walk1   = sprites.kid_down_walk1;
+      sprites.kid_up_walk2   = sprites.kid_down_walk2;
+      sprites.kid_right_idle  = bakeGrid(KID_RIGHT_IDLE, KID_PAL);
+      sprites.kid_right_walk1 = bakeGrid(KID_RIGHT_WALK1, KID_PAL);
+      sprites.kid_right_walk2 = bakeGrid(KID_RIGHT_WALK2, KID_PAL);
+      sprites.kid_left_idle  = flipH(sprites.kid_right_idle);
+      sprites.kid_left_walk1 = flipH(sprites.kid_right_walk1);
+      sprites.kid_left_walk2 = flipH(sprites.kid_right_walk2);
+
+      // Spacesuit astronaut
+      sprites.suit_down_idle  = bakeGrid(SUIT_DOWN_IDLE, SUIT_PAL);
+      sprites.suit_down_walk1 = bakeGrid(SUIT_DOWN_WALK1, SUIT_PAL);
+      sprites.suit_down_walk2 = bakeGrid(SUIT_DOWN_WALK2, SUIT_PAL);
+      sprites.suit_up_idle    = bakeGrid(SUIT_UP_IDLE, SUIT_PAL);
+      sprites.suit_up_walk1   = bakeGrid(SUIT_UP_WALK1, SUIT_PAL);
+      sprites.suit_up_walk2   = bakeGrid(SUIT_UP_WALK2, SUIT_PAL);
+      sprites.suit_right_idle  = bakeGrid(SUIT_RIGHT_IDLE, SUIT_PAL);
+      sprites.suit_right_walk1 = bakeGrid(SUIT_RIGHT_WALK1, SUIT_PAL);
+      sprites.suit_right_walk2 = bakeGrid(SUIT_RIGHT_WALK2, SUIT_PAL);
+      sprites.suit_left_idle  = flipH(sprites.suit_right_idle);
+      sprites.suit_left_walk1 = flipH(sprites.suit_right_walk1);
+      sprites.suit_left_walk2 = flipH(sprites.suit_right_walk2);
+
+      // Crew NPCs
+      sprites.npc_nova      = bakeCrewAstronaut("#f97316", "#fde047", "#3b1d14"); // Commander Nova (Orange/Gold)
+      sprites.npc_engineer  = bakeCrewAstronaut("#eab308", "#38bdf8", "#1e293b"); // Engineer (Amber/Cyan)
+      sprites.npc_scientist = bakeCrewAstronaut("#10b981", "#a7f3d0", "#4c1d95"); // Scientist (Emerald)
+
+      bakeTeacher();
+
+      sprites.mach_water_0  = bakeMachine("water", 0);
+      sprites.mach_water_1  = bakeMachine("water", 1);
+      sprites.mach_oxygen_0 = bakeMachine("oxygen", 0);
+      sprites.mach_oxygen_1 = bakeMachine("oxygen", 1);
+      sprites.mach_repair_0 = bakeMachine("repair", 0);
+      sprites.mach_repair_1 = bakeMachine("repair", 1);
+      sprites.mach_galley_0 = bakeMachine("galley", 0);
+      sprites.mach_galley_1 = bakeMachine("galley", 1);
+
+      sprites.bed_Empty_0   = bakeGrowBed("Empty", 0);
+      sprites.bed_Empty_1   = bakeGrowBed("Empty", 1);
+      sprites.bed_Growing_0 = bakeGrowBed("Growing", 0);
+      sprites.bed_Growing_1 = bakeGrowBed("Growing", 1);
+      sprites.bed_Mature_0  = bakeGrowBed("Mature", 0);
+      sprites.bed_Mature_1  = bakeGrowBed("Mature", 1);
+
+      sprites.console_0 = bakeConsole(0);
+      sprites.console_1 = bakeConsole(1);
+
+      bakeProps();
+      bakeIcons();
+    }
+
+    function iconImg(key, w = 14, h = 14) {
+      const src = icons[key] || "";
+      return `<img class="px-sprite" src="${src}" width="${w}" height="${h}" alt="">`;
+    }
+
+    return { init, sprites, icons, iconImg };
+  })();
+
+
+  /* =========================================================================
+   * MODULE 6: RoomDefinitions
+   * Defines all playable environments:
+   * - Opening Story: Classroom & Bedroom
+   * - Day 0 Tutorial: ASTRA Transit Spacecraft
+   * - Days 1–7 Survival: Lunar Base Central Hub + 4 Connected Resource Wings
+   * ========================================================================= */
+  const RoomDefinitions = {
+    /* ----- SCENE 1: CLASSROOM ----- */
+    classroom: {
+      id: "classroom",
+      name: "Room 204 — Science Class",
+      bounds: { x1: 48, y1: 54, x2: 432, y2: 274 },
+      floorA: "#d0dce8",
+      floorB: "#c3d1e0",
+      wallTop: "#4f6d7a",
+      wallTrim: "#354b54",
+      doors: [
+        { x: 214, y: 274, w: 52, h: 20, label: "GO HOME", color: "#ffd466", action: "go_home" }
+      ],
+      objects: [
+        {
+          id: "cls_board", kind: "prop", sprite: "chalkboard", name: "Chalkboard",
+          x: 160, y: 56, w: 160, h: 42,
+          onInteract: () => StoryManager.triggerClassroomLesson()
+        },
+        {
+          id: "cls_teacher", kind: "npc", sprite: "teacher", name: "Mr. Okafor (Teacher)",
+          x: 230, y: 108, w: 20, h: 30,
+          onInteract: () => StoryManager.triggerClassroomLesson()
+        },
+        {
+          id: "cls_desk1", kind: "prop", sprite: "school_desk", name: "My Desk",
+          x: 96, y: 158, w: 42, h: 24,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Me", portrait: "kid",
+            lines: ["My science notebook. Mostly doodles of spaceships and lunch menus."]
+          })
+        },
+        {
+          id: "cls_desk2", kind: "prop", sprite: "school_desk", name: "Student Desk",
+          x: 332, y: 158, w: 42, h: 24,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Classmate", portrait: "kid",
+            lines: ["Imagine having to make your own oxygen every day on the Moon!"]
+          })
+        }
+      ]
+    },
+
+    /* ----- SCENES 2 & 3: BEDROOM ----- */
+    bedroom: {
+      id: "bedroom",
+      name: "Home — My Bedroom",
+      bounds: { x1: 86, y1: 64, x2: 394, y2: 266 },
+      floorA: "#c7d2e6",
+      floorB: "#b9c6de",
+      wallTop: "#3f386b",
+      wallTrim: "#2b254d",
+      doors: [],
+      objects: [
+        {
+          id: "bed_sleep", kind: "sleep_bed", sprite: "bed", name: "Bed",
+          x: 314, y: 84, w: 56, h: 76,
+          onInteract: () => StoryManager.triggerSleepTransition()
+        },
+        {
+          id: "bed_window", kind: "prop", sprite: "window", name: "Night Window",
+          x: 170, y: 66, w: 36, h: 42,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Me", portrait: "kid",
+            lines: ["The Moon looks super bright tonight. Good thing I don't actually have to live up there!"]
+          })
+        },
+        {
+          id: "bed_desk", kind: "prop", sprite: "school_desk", name: "Study Desk",
+          x: 108, y: 184, w: 42, h: 24,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Me", portrait: "kid",
+            lines: ["Homework finished! Time to head over to my bed and get some sleep."]
+          })
+        }
+      ]
+    },
+
+    /* ----- DAY 0: SPACECRAFT TUTORIAL DECK ----- */
+    spacecraft: {
+      id: "spacecraft",
+      name: "ASTRA Transit Spacecraft — Day 0",
+      bounds: { x1: 32, y1: 52, x2: 448, y2: 282 },
+      floorA: "#cad4e3",
+      floorB: "#bcc8d9",
+      wallTop: "#334155",
+      wallTrim: "#1e293b",
+      doors: [],
+      objects: [
+        {
+          id: "sc_screen", kind: "prop", sprite: "cockpit_screen", name: "Cockpit Viewscreen",
+          x: 180, y: 54, w: 120, h: 34,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Navigation Computer", portrait: "console",
+            lines: [
+              "TRAJECTORY: Translunar Injection Complete. Lunar Orbit Insertion imminent.",
+              "All crew members must complete equipment orientation prior to touchdown."
+            ]
+          })
+        },
+        {
+          id: "sc_bunk", kind: "prop", sprite: "bunk_pod", name: "Crew Bunk Pod",
+          x: 48, y: 226, w: 56, h: 38,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Me", portrait: "suit",
+            lines: ["I literally fell asleep in my bedroom and woke up in this spacesuit!"]
+          })
+        },
+        {
+          id: "npc_nova", kind: "npc", sprite: "npc_nova", name: "Commander Nova",
+          x: 230, y: 108, w: 22, h: 28,
+          onInteract: () => StoryManager.talkCommanderNovaDay0()
+        },
+        {
+          id: "npc_eng", kind: "npc", sprite: "npc_engineer", name: "Engineer",
+          x: 106, y: 148, w: 22, h: 28,
+          onInteract: () => StoryManager.talkEngineerDay0()
+        },
+        {
+          id: "npc_sci", kind: "npc", sprite: "npc_scientist", name: "Scientist",
+          x: 352, y: 148, w: 22, h: 28,
+          onInteract: () => StoryManager.talkScientistDay0()
+        },
+        {
+          id: "tut_water", kind: "tut_machine", tutKey: "water", sprite: "mach_water", name: "Water Recycler (Tutorial)",
+          x: 46, y: 80, w: 58, h: 38,
+          onInteract: () => UIManager.openMachineTutorial("water")
+        },
+        {
+          id: "tut_oxygen", kind: "tut_machine", tutKey: "oxygen", sprite: "mach_oxygen", name: "Oxygen Generator (Tutorial)",
+          x: 376, y: 80, w: 58, h: 38,
+          onInteract: () => UIManager.openMachineTutorial("oxygen")
+        },
+        {
+          id: "tut_repair", kind: "tut_machine", tutKey: "repair", sprite: "mach_repair", name: "Base Repair Unit (Tutorial)",
+          x: 164, y: 228, w: 58, h: 38,
+          onInteract: () => UIManager.openMachineTutorial("repair")
+        },
+        {
+          id: "tut_greenhouse", kind: "tut_machine", tutKey: "greenhouse", sprite: "bed_Mature", name: "Hydroponic Pod (Tutorial)",
+          x: 266, y: 232, w: 52, h: 34,
+          onInteract: () => UIManager.openMachineTutorial("greenhouse")
+        },
+        {
+          id: "tut_galley", kind: "tut_machine", tutKey: "galley", sprite: "mach_galley", name: "Galley Dispenser (Tutorial)",
+          x: 368, y: 228, w: 58, h: 38,
+          onInteract: () => UIManager.openMachineTutorial("galley")
+        }
+      ]
+    },
+
+    /* ----- DAYS 1–7: LUNAR BASE CENTRAL HUB ----- */
+    hub: {
+      id: "hub",
+      name: "Lunar Base — Central Hub",
+      bounds: { x1: 20, y1: 42, x2: 460, y2: 294 },
+      floorA: "#c8d2e0",
+      floorB: "#bcc7d8",
+      wallTop: "#4b4473",
+      wallTrim: "#352f54",
+      hasCenterMat: true,
+      doors: [
+        { x: 64,  y: 22,  w: 44, h: 20, label: "WATER",  color: "#38a3e8", to: "water",  spawnX: 240, spawnY: 244, dir: "up" },
+        { x: 372, y: 22,  w: 44, h: 20, label: "FOOD",   color: "#e86f52", to: "food",   spawnX: 240, spawnY: 244, dir: "up" },
+        { x: 64,  y: 294, w: 44, h: 20, label: "POWER",  color: "#f2c230", to: "power",  spawnX: 240, spawnY: 244, dir: "up" },
+        { x: 372, y: 294, w: 44, h: 20, label: "OXYGEN", color: "#4fd190", to: "oxygen", spawnX: 240, spawnY: 244, dir: "up" }
+      ],
+      objects: [
+        {
+          id: "day_console", kind: "console", sprite: "console", name: "Mission Day Console",
+          x: 212, y: 50, w: 56, h: 34,
+          onInteract: () => UIManager.openEndDayConsole()
+        },
+        {
+          id: "hub_repair", kind: "repair_station", sprite: "mach_repair", name: "Base Repair Station",
+          x: 44, y: 92, w: 58, h: 38,
+          onInteract: () => UIManager.openRepairPanel()
+        },
+        {
+          id: "hub_galley", kind: "galley_station", sprite: "mach_galley", name: "Crew Galley (Eat/Drink)",
+          x: 378, y: 92, w: 58, h: 38,
+          onInteract: () => UIManager.openGalleyPanel()
+        },
+        {
+          id: "hub_nova", kind: "npc", sprite: "npc_nova", name: "Commander Nova",
+          x: 138, y: 170, w: 22, h: 28,
+          onInteract: () => {
+            const s = GameState.get();
+            const tips = [
+              `Day ${s.day} of 7. Remember: queued actions deduct costs immediately, and produce results after SIMULATE.`,
+              "Keep an eye on Base Integrity! Micrometeorites and thermal wear damage the hull each night.",
+              "If your Stamina runs low, visit the Crew Galley to Eat Food (+3%) or Drink Water (+3%) immediately.",
+              "Crew consumption for all four astronauts happens automatically at the end of every day."
+            ];
+            DialogueSystem.open({
+              speaker: "Commander Nova",
+              portrait: "nova",
+              lines: [tips[(s.day - 1) % tips.length]]
+            });
+          }
+        },
+        {
+          id: "hub_map", kind: "prop", sprite: "map", name: "Base Map",
+          x: 312, y: 172, w: 48, h: 28,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Base Map",
+            lines: [
+              "NW: Water Bay | NE: Hydroponic Greenhouse | SW: Power Bay | SE: Oxygen Bay.",
+              "North Hub: Mission Day Console | West Hub: Base Repair | East Hub: Crew Galley."
+            ]
+          })
+        },
+        {
+          id: "hub_win", kind: "prop", sprite: "window", name: "Lunar Window",
+          x: 406, y: 202, w: 36, h: 42,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Me", portrait: "suit",
+            lines: ["Our landing struts are planted firmly in the lunar regolith. Seven days to keep everyone safe!"]
+          })
+        }
+      ]
+    },
+
+    /* ----- WATER BAY ----- */
+    water: {
+      id: "water",
+      name: "Water Recycling Bay",
+      bounds: { x1: 68, y1: 58, x2: 412, y2: 266 },
+      floorA: "#cbe4f2",
+      floorB: "#bdd9eb",
+      wallTop: "#2f7fb0",
+      wallTrim: "#235d8a",
+      doors: [
+        { x: 218, y: 266, w: 44, h: 20, label: "HUB", color: "#ffd466", to: "hub", spawnX: 86, spawnY: 56, dir: "down" }
+      ],
+      objects: [
+        {
+          id: "mach_water", kind: "water_station", sprite: "mach_water", name: "Water Recycling Machine",
+          x: 208, y: 68, w: 64, h: 42,
+          onInteract: () => UIManager.openWaterPanel()
+        },
+        {
+          id: "eng_water", kind: "npc", sprite: "npc_engineer", name: "Engineer",
+          x: 112, y: 144, w: 22, h: 28,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Engineer", portrait: "engineer",
+            lines: [
+              "Each Water Recycling cycle costs 3 kWh Power and 3% Stamina, producing +10 L Water after simulation.",
+              "Remember: our crew of four consumes 15.14 L of water every single day!"
+            ]
+          })
+        },
+        {
+          id: "prop_tank", kind: "prop", sprite: "water_tank", name: "Cistern Tank",
+          x: 356, y: 86, w: 28, h: 34,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Telemetry",
+            lines: [`Main Potable Storage: ${fmt(GameState.get().res.water)} / 200 L.`]
+          })
+        },
+        {
+          id: "win_water", kind: "prop", sprite: "window", name: "Lunar Window",
+          x: 354, y: 196, w: 34, h: 40,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Me", portrait: "suit",
+            lines: ["Permanently shadowed craters near the pole hold billions of tons of water ice."]
+          })
+        }
+      ]
+    },
+
+    /* ----- HYDROPONIC GREENHOUSE (FOOD ROOM) ----- */
+    food: {
+      id: "food",
+      name: "Hydroponic Greenhouse",
+      bounds: { x1: 68, y1: 58, x2: 412, y2: 266 },
+      floorA: "#dcebe0",
+      floorB: "#cfe2d5",
+      wallTop: "#c06850",
+      wallTrim: "#9e4b3b",
+      doors: [
+        { x: 218, y: 266, w: 44, h: 20, label: "HUB", color: "#ffd466", to: "hub", spawnX: 394, spawnY: 56, dir: "down" }
+      ],
+      objects: [
+        {
+          id: "grow_bed_0", kind: "grow_bed", bedIndex: 0, sprite: "bed_Empty", name: "Hydroponic Grow Bed A",
+          x: 132, y: 82, w: 54, h: 34,
+          onInteract: () => UIManager.openGreenhousePanel(0)
+        },
+        {
+          id: "grow_bed_1", kind: "grow_bed", bedIndex: 1, sprite: "bed_Empty", name: "Hydroponic Grow Bed B",
+          x: 294, y: 82, w: 54, h: 34,
+          onInteract: () => UIManager.openGreenhousePanel(1)
+        },
+        {
+          id: "sci_food", kind: "npc", sprite: "npc_scientist", name: "Scientist",
+          x: 354, y: 152, w: 22, h: 28,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Scientist", portrait: "scientist",
+            lines: [
+              "Planting takes 8 L Water, 8 kWh Power, 20% Stamina, 1 Seed, and 1 Nutrient Pack.",
+              "Crops take 3 completed days to mature, then Harvest Food (23% Stamina) yields +15 FP (15,000 kcal)!"
+            ]
+          })
+        },
+        {
+          id: "win_food", kind: "prop", sprite: "window", name: "Lunar Window",
+          x: 104, y: 196, w: 34, h: 40,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Me", portrait: "suit",
+            lines: ["Pink-spectrum LED grow arrays keep our lunar crops thriving while Earth shines outside."]
+          })
+        }
+      ]
+    },
+
+    /* ----- POWER BAY ----- */
+    power: {
+      id: "power",
+      name: "Solar & Power Bay",
+      bounds: { x1: 68, y1: 58, x2: 412, y2: 266 },
+      floorA: "#d4d8e0",
+      floorB: "#c6cbd6",
+      wallTop: "#c99a1e",
+      wallTrim: "#8c6b19",
+      hasHazardTrim: true,
+      doors: [
+        { x: 218, y: 266, w: 44, h: 20, label: "HUB", color: "#ffd466", to: "hub", spawnX: 86, spawnY: 278, dir: "up" }
+      ],
+      objects: [
+        {
+          id: "mach_power_rep", kind: "repair_station", sprite: "mach_repair", name: "Grid & Hull Repair Terminal",
+          x: 208, y: 68, w: 64, h: 42,
+          onInteract: () => UIManager.openRepairPanel()
+        },
+        {
+          id: "prop_batt", kind: "prop", sprite: "battery_bank", name: "Solar Capacitor Bank",
+          x: 350, y: 92, w: 30, h: 32,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Power Telemetry",
+            lines: [
+              "Automatic Solar Generation: +25 kWh/day. Basic Base Consumption: -10 kWh/day.",
+              "Net baseline power gain before machine actions: +15 kWh/day."
+            ]
+          })
+        },
+        {
+          id: "win_power", kind: "prop", sprite: "window", name: "Lunar Window",
+          x: 104, y: 196, w: 34, h: 40,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Me", portrait: "suit",
+            lines: ["External photovoltaic wings track the Sun across the lunar horizon."]
+          })
+        }
+      ]
+    },
+
+    /* ----- OXYGEN BAY ----- */
+    oxygen: {
+      id: "oxygen",
+      name: "Oxygen Generation Bay",
+      bounds: { x1: 68, y1: 58, x2: 412, y2: 266 },
+      floorA: "#cde3dc",
+      floorB: "#bfd9d1",
+      wallTop: "#2f9a72",
+      wallTrim: "#226b52",
+      doors: [
+        { x: 218, y: 266, w: 44, h: 20, label: "HUB", color: "#ffd466", to: "hub", spawnX: 394, spawnY: 278, dir: "up" }
+      ],
+      objects: [
+        {
+          id: "mach_oxygen", kind: "oxygen_station", sprite: "mach_oxygen", name: "Oxygen Generator",
+          x: 208, y: 68, w: 64, h: 42,
+          onInteract: () => UIManager.openOxygenPanel()
+        },
+        {
+          id: "prop_o2", kind: "prop", sprite: "o2_tanks", name: "O2 Reserve Cylinders",
+          x: 112, y: 92, w: 28, h: 26,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Atmosphere Monitor",
+            lines: [
+              `Oxygen Reserves: ${fmt(GameState.get().res.oxygen)} / 50 kg. Crew consumes 3.32 kg/day.`,
+              "Electrolysis converts 2.25 L Water + 6 kWh Power + 3% Stamina into +4 kg Oxygen."
+            ]
+          })
+        },
+        {
+          id: "win_oxygen", kind: "prop", sprite: "window", name: "Lunar Window",
+          x: 354, y: 196, w: 34, h: 40,
+          onInteract: () => DialogueSystem.open({
+            speaker: "Me", portrait: "suit",
+            lines: ["Never let Oxygen hit 0 kg—keeping electrolysis running is top priority!"]
+          })
+        }
+      ]
+    }
+  };
+
+
+  /* =========================================================================
+   * MODULE 7: DialogueSystem (Supports Gradual Typing + Interactive Choices)
+   * ========================================================================= */
+  const DialogueSystem = (() => {
+    let active = null;
+    const boxEl = document.getElementById("dialogueBox");
+
+    function render() {
+      if (!active) return;
+      const fullLine = active.lines[active.index] || "";
+      const visibleCount = Math.floor(active.charPos);
+      const visibleText = fullLine.slice(0, visibleCount);
+      const isLineComplete = visibleCount >= fullLine.length;
+      const isLastLine = active.index >= active.lines.length - 1;
+      const showChoices = isLineComplete && isLastLine && active.choices && active.choices.length > 0;
+
+      const portraitHtml = active.portrait
+        ? `<div class="dlg-portrait">${PixelArt.iconImg(active.portrait, 40, 48)}</div>`
+        : "";
+
+      const speakerHtml = active.speaker
+        ? `<span class="dlg-speaker">${active.speaker}</span>`
+        : "";
+
+      let choicesHtml = "";
+      if (showChoices) {
+        choicesHtml = `<div class="dlg-choices">` +
+          active.choices.map((ch, idx) =>
+            `<button class="choice-btn ${idx === active.selectedChoice ? "selected" : ""}" data-cidx="${idx}">> ${ch.label}</button>`
+          ).join("") +
+          `</div>`;
+      }
+
+      const hintText = showChoices
+        ? "[UP/DOWN] Select  |  [ENTER] Choose"
+        : isLineComplete
+          ? (!isLastLine ? "[ENTER] Next" : "[ENTER] Continue")
+          : "[SPACE] Reveal";
+
+      boxEl.innerHTML = `
+        <div class="dlg-layout">
+          ${portraitHtml}
+          <div class="dlg-body">
+            ${speakerHtml}
+            <div class="dlg-text">${visibleText}</div>
+            ${choicesHtml}
+          </div>
+        </div>
+        <div class="dlg-hint">${hintText}</div>
+      `;
+
+      if (showChoices) {
+        boxEl.querySelectorAll(".choice-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-cidx"));
+            selectChoice(idx);
+          });
+        });
+      }
+    }
+
+    function selectChoice(idx) {
+      if (!active || !active.choices || !active.choices[idx]) return;
+      const chosen = active.choices[idx];
+      AudioEngine.click();
+      close(false);
+      if (chosen.onSelect) chosen.onSelect();
+    }
+
+    function open({ lines, speaker = "", portrait = null, choices = null, onComplete = null }) {
+      active = {
+        lines: Array.isArray(lines) && lines.length ? lines : ["..."],
+        index: 0,
+        charPos: 0,
+        lastRenderedChars: -1,
+        lastSpokenCharIndex: -1,
+        speaker,
+        portrait,
+        choices,
+        selectedChoice: 0,
+        onComplete
+      };
+      boxEl.style.display = "block";
+      render();
+      active.lastRenderedChars = 0;
+    }
+
+    function close(skipped = false) {
+      if (!active) return;
+      const cb = active.onComplete;
+      active = null;
+      boxEl.style.display = "none";
+      boxEl.innerHTML = "";
+      if (cb) cb(skipped);
+    }
+
+    function update(dt) {
+      if (!active) return;
+      const fullLine = active.lines[active.index] || "";
+      if (active.charPos < fullLine.length) {
+        active.charPos = Math.min(fullLine.length, active.charPos + dt * 46);
+        const charIdx = Math.floor(active.charPos);
+
+        if (charIdx > active.lastSpokenCharIndex) {
+          for (let i = active.lastSpokenCharIndex + 1; i <= charIdx && i < fullLine.length; i++) {
+            if (fullLine[i] !== " " && i % 2 === 0) {
+              AudioEngine.type();
+              break;
+            }
+          }
+          active.lastSpokenCharIndex = charIdx;
+        }
+
+        if (charIdx !== active.lastRenderedChars) {
+          active.lastRenderedChars = charIdx;
+          render();
+        }
+      }
+    }
+
+    function handleKey(key) {
+      if (!active) return false;
+      const fullLine = active.lines[active.index] || "";
+      const isLineComplete = Math.floor(active.charPos) >= fullLine.length;
+      const isLastLine = active.index >= active.lines.length - 1;
+      const hasChoices = isLineComplete && isLastLine && active.choices && active.choices.length > 0;
+
+      if (hasChoices) {
+        if (key === "ArrowUp") {
+          active.selectedChoice = (active.selectedChoice - 1 + active.choices.length) % active.choices.length;
+          AudioEngine.click();
+          render();
+          return true;
+        }
+        if (key === "ArrowDown") {
+          active.selectedChoice = (active.selectedChoice + 1) % active.choices.length;
+          AudioEngine.click();
+          render();
+          return true;
+        }
+        if (key === "Enter" || key === " ") {
+          selectChoice(active.selectedChoice);
+          return true;
+        }
+        return true;
+      }
+
+      if (key === " ") {
+        if (!isLineComplete) {
+          active.charPos = fullLine.length;
+          active.lastRenderedChars = fullLine.length;
+          render();
+        }
+        return true;
+      }
+
+      if (key === "Enter") {
+        if (!isLineComplete) {
+          active.charPos = fullLine.length;
+          active.lastRenderedChars = fullLine.length;
+          render();
+        } else if (!isLastLine) {
+          active.index += 1;
+          active.charPos = 0;
+          active.lastRenderedChars = 0;
+          active.lastSpokenCharIndex = -1;
+          AudioEngine.click();
+          render();
+        } else {
+          AudioEngine.click();
+          close(false);
+        }
+        return true;
+      }
+
+      return true;
+    }
+
+    return {
+      open,
+      close,
+      update,
+      handleKey,
+      isActive: () => active !== null
+    };
+  })();
+
+
+  /* =========================================================================
+   * MODULE 8: StoryManager
+   * Orchestrates:
+   * - Scene 1: Classroom lesson + Player dialogue choices
+   * - Scene 2 & 3: Walking home -> Bedroom -> [ SLEEP ] bed transition
+   * - Scene 4: Waking up in spacecraft ("Where am I?") + Commander Nova's
+   *   training-head-bump conversation
+   * - Day 0: Crew orientations + Machine tutorials + [ TIME SKIP ] Lunar Landing
+   * ========================================================================= */
+  const StoryManager = {
+    startNewGame() {
+      const s = GameState.reset();
+      GameController.setMode("play");
+      UIManager.updateHUD();
+      setTimeout(() => this.triggerClassroomLesson(), 250);
+    },
+
+    triggerClassroomLesson() {
+      const s = GameState.get();
+      DialogueSystem.open({
+        speaker: "Mr. Okafor (Teacher)",
+        portrait: "teacher",
+        lines: [
+          "\"Today's topic: living on the Moon! Future lunar bases will need closed loops for water, oxygen, food, and solar power.\"",
+          "\"Astronauts will have to grow crops in hydroponic pods and monitor base integrity every single day.\""
+        ],
+        choices: [
+          {
+            label: "\"Living on the Moon? Sounds totally ridiculous! Where's the snack bar?\"",
+            onSelect: () => {
+              s.storyFlags.classroomTalkDone = true;
+              DialogueSystem.open({
+                speaker: "Mr. Okafor (Teacher)",
+                portrait: "teacher",
+                lines: [
+                  "\"Haha! You'd have to grow your own snacks in the greenhouse!\"",
+                  "\"That's the bell—head home, get some rest, and don't forget to review your science notes!\""
+                ]
+              });
+            }
+          },
+          {
+            label: "\"No way! I like Earth gravity where my homework stays on my desk.\"",
+            onSelect: () => {
+              s.storyFlags.classroomTalkDone = true;
+              DialogueSystem.open({
+                speaker: "Mr. Okafor (Teacher)",
+                portrait: "teacher",
+                lines: [
+                  "\"One-sixth gravity takes some getting used to, that's for sure!\"",
+                  "\"Class dismissed! Walk home safely and get a good night's sleep.\""
+                ]
+              });
+            }
+          }
+        ]
+      });
+    },
+
+    goHomeFromClassroom() {
+      AudioEngine.door();
+      GameController.startTransition(() => {
+        const s = GameState.get();
+        s.phase = "story_bedroom";
+        s.room = "bedroom";
+        s.x = 136;
+        s.y = 224;
+        s.facing = "up";
+        s.outfit = "kid";
+        UIManager.updateHUD();
+      }, () => {
+        DialogueSystem.open({
+          speaker: "Me",
+          portrait: "kid",
+          lines: [
+            "Back home in my bedroom! Living on the Moon... what a funny idea.",
+            "Time to walk over to my bed and get some sleep."
+          ]
+        });
+      });
+    },
+
+    triggerSleepTransition() {
+      AudioEngine.click();
+      GameController.startSleepCutscene(() => {
+        const s = GameState.get();
+        s.phase = "day0";
+        s.day = 0;
+        s.room = "spacecraft";
+        s.x = 76;
+        s.y = 196;
+        s.facing = "right";
+        s.outfit = "suit"; // Player is now wearing a full pressurized spacesuit!
+        s.storyFlags.wokeUpInSpace = true;
+        GameState.save();
+        UIManager.updateHUD();
+
+        DialogueSystem.open({
+          speaker: "Me",
+          portrait: "suit",
+          lines: [
+            "\"Where am I?!\"",
+            "Wait... why am I wearing a spacesuit?! And why are there stars outside that cockpit window?!"
+          ],
+          onComplete: () => {
+            this.talkCommanderNovaDay0();
+          }
+        });
+      });
+    },
+
+    talkCommanderNovaDay0() {
+      const s = GameState.get();
+      if (!s.storyFlags.talkedNova) {
+        s.storyFlags.talkedNova = true;
+        UIManager.updateHUD();
+        DialogueSystem.open({
+          speaker: "Commander Nova",
+          portrait: "nova",
+          lines: [
+            "Me: \"Excuse me... where am I?\"",
+            "Commander Nova: \"Oh, you're finally awake!\"",
+            "Me: \"What is this place? Why am I here?\"",
+            "Commander Nova: \"We're aboard the spacecraft heading to the Moon!\"",
+            "Me: \"THE MOON?!\"",
+            "Commander Nova: \"Wait... don't tell me you forgot the mission.\"",
+            "Me: \"What mission?!\"",
+            "Commander Nova: \"Did you hit your head during the last training session?\"",
+            "Commander Nova: \"Listen carefully, Junior Astronaut: we have a 7-day lunar base mission ahead. Talk to the Engineer and Scientist, inspect the training machines, and let me know when you're ready!\""
+          ]
+        });
+      } else if (GameLogicService.isDay0Complete(s)) {
+        DialogueSystem.open({
+          speaker: "Commander Nova",
+          portrait: "nova",
+          lines: [
+            "\"Orientation complete! Our spacecraft is aligned for final lunar descent.\"",
+            "\"Click [ TIME SKIP ] whenever you're ready to land on the Moon and begin Day 1!\""
+          ],
+          choices: [
+            {
+              label: "[ TIME SKIP ] — Initiate Lunar Landing Sequence",
+              onSelect: () => this.triggerTimeSkipLanding()
+            },
+            {
+              label: "Keep exploring the spacecraft a little longer",
+              onSelect: () => {}
+            }
+          ]
+        });
+      } else {
+        DialogueSystem.open({
+          speaker: "Commander Nova",
+          portrait: "nova",
+          lines: [
+            "\"You're in charge of operating the lunar base's life-support systems for 7 days.\"",
+            "\"Speak with the Engineer and Scientist and inspect the spacecraft machines to finish Day 0 orientation.\""
+          ]
+        });
+      }
+    },
+
+    talkEngineerDay0() {
+      const s = GameState.get();
+      s.storyFlags.talkedEngineer = true;
+      UIManager.updateHUD();
+      DialogueSystem.open({
+        speaker: "Engineer",
+        portrait: "engineer",
+        lines: [
+          "\"Careful with that helmet! You must've bumped it hard in the centrifuge simulator.\"",
+          "\"Here's your engineering refresher: Water Recycling uses 3 kWh Power + 3% Stamina to produce +10 L Water.\"",
+          "\"Oxygen Generation uses 2.25 L Water + 6 kWh Power + 3% Stamina to produce +4 kg Oxygen.\"",
+          "\"Solar arrays generate +25 kWh/day while base systems use -10 kWh/day (+15 kWh net). And Base Repair costs 10 kWh + 20% Stamina for +20% Integrity!\""
+        ]
+      });
+    },
+
+    talkScientistDay0() {
+      const s = GameState.get();
+      s.storyFlags.talkedScientist = true;
+      UIManager.updateHUD();
+      DialogueSystem.open({
+        speaker: "Scientist",
+        portrait: "scientist",
+        lines: [
+          "\"Glad you're back on your feet! Here is how the Hydroponic Greenhouse works:\"",
+          "\"Grow Food requires 8 L Water, 8 kWh Power, 20% Stamina, 1 Seed, and 1 Nutrient Pack. Crops take 3 completed days to mature!\"",
+          "\"Once Mature, Harvest Food costs 23% Stamina and yields +15 FP (1 FP = 1,000 kcal).\"",
+          "\"Our 4-person crew consumes 15.14 L Water, 3.32 kg Oxygen, and 12.14 FP Food daily. Eating 2 FP or drinking 2 L restores +3% Stamina immediately!\""
+        ]
+      });
+    },
+
+    triggerTimeSkipLanding() {
+      AudioEngine.door();
+      GameController.startLandingCutscene(() => {
+        const s = GameState.get();
+        s.phase = "survival";
+        s.day = 1;
+        s.room = "hub";
+        s.x = 240;
+        s.y = 224;
+        s.facing = "down";
+        s.outfit = "suit";
+        GameState.save();
+        UIManager.updateHUD();
+
+        DialogueSystem.open({
+          speaker: "Commander Nova",
+          portrait: "nova",
+          lines: [
+            "\"Touchdown confirmed. Welcome to the Moon, crew.\"",
+            "\"DAY 1 — LUNAR MISSION BEGINS. All life-support systems are now active!\""
+          ]
+        });
+      });
+    }
+  };
+
+
+  /* =========================================================================
+   * MODULE 9: Renderer
+   * Renders:
+   * - Main Menu Lunar Habitat Vista
+   * - Sleep Transition & Animated Lunar Approach / Touchdown Cutscene
+   * - Playable Rooms (Classroom, Bedroom, Spacecraft, Lunar Base Hub & 4 Wings)
+   * - Casual Kid & Spacesuit Astronaut 4-direction animated sprites
+   * ========================================================================= */
+  const Renderer = (() => {
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+
+    const STARS = Array.from({ length: 82 }, (_, i) => ({
+      x: (i * 73 + 19) % 480,
+      y: (i * 41 + 11) % 215,
+      size: i % 7 === 0 ? 2 : 1,
+      phase: i * 0.7
+    }));
+
+    function drawStarfieldAndEarth(timeMs) {
+      ctx.fillStyle = "#090b18";
+      ctx.fillRect(0, 0, 480, 320);
+
+      for (const st of STARS) {
+        const alpha = 0.45 + 0.55 * Math.sin(timeMs / 460 + st.phase);
+        ctx.fillStyle = `rgba(255, 250, 235, ${alpha.toFixed(2)})`;
+        ctx.fillRect(st.x, st.y, st.size, st.size);
+      }
+
+      // Crescent Earth
+      const ex = 88, ey = 68;
+      ctx.fillStyle = "#162244";
+      ctx.beginPath();
+      ctx.arc(ex, ey, 22, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#3b82f6";
+      ctx.beginPath();
+      ctx.arc(ex - 3, ey - 2, 20, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#162244";
+      ctx.beginPath();
+      ctx.arc(ex + 6, ey + 4, 18, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#4fd190";
+      ctx.fillRect(ex - 16, ey - 8, 6, 5);
+      ctx.fillRect(ex - 14, ey + 2, 5, 6);
+      ctx.fillStyle = "#e0f2fe";
+      ctx.fillRect(ex - 18, ey - 3, 9, 2);
+    }
+
+    function drawLunarSurface() {
+      ctx.fillStyle = "#3c435c";
+      ctx.beginPath();
+      ctx.moveTo(0, 232);
+      ctx.lineTo(65, 208);
+      ctx.lineTo(135, 222);
+      ctx.lineTo(220, 198);
+      ctx.lineTo(310, 218);
+      ctx.lineTo(395, 202);
+      ctx.lineTo(480, 224);
+      ctx.lineTo(480, 250);
+      ctx.lineTo(0, 250);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#7a8299";
+      ctx.fillRect(0, 235, 480, 85);
+      ctx.fillStyle = "#919ab3";
+      ctx.fillRect(0, 235, 480, 6);
+
+      const drawCrater = (cx, cy, rx, ry) => {
+        ctx.fillStyle = "#5a6178";
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#a3acc4";
+        ctx.fillRect(cx - rx + 3, cy + ry - 1, rx * 2 - 6, 2);
+      };
+      drawCrater(68, 272, 24, 7);
+      drawCrater(412, 280, 28, 8);
+      drawCrater(165, 298, 16, 5);
+      drawCrater(325, 296, 18, 5);
+    }
+
+    function drawMenuLunarBase(timeMs) {
+      drawStarfieldAndEarth(timeMs);
+      drawLunarSurface();
+
+      const hx = 240, hy = 252;
+      // Solar wings
+      ctx.fillStyle = "#181228";
+      ctx.fillRect(hx - 128, hy - 26, 58, 18);
+      ctx.fillRect(hx + 70, hy - 26, 58, 18);
+      ctx.fillStyle = "#2563eb";
+      ctx.fillRect(hx - 126, hy - 24, 54, 14);
+      ctx.fillRect(hx + 72, hy - 24, 54, 14);
+      ctx.fillStyle = "#93c5fd";
+      for (let gx = 0; gx < 54; gx += 13) {
+        ctx.fillRect(hx - 126 + gx, hy - 24, 1, 14);
+        ctx.fillRect(hx + 72 + gx, hy - 24, 1, 14);
+      }
+
+      // Geodesic Lunar Dome
+      ctx.fillStyle = "#181228";
+      ctx.beginPath();
+      ctx.arc(hx, hy - 12, 56, Math.PI, 0);
+      ctx.fill();
+      ctx.fillStyle = "#e2e8f0";
+      ctx.beginPath();
+      ctx.arc(hx, hy - 12, 53, Math.PI, 0);
+      ctx.fill();
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillRect(hx - 54, hy - 16, 108, 16);
+      ctx.fillStyle = "#181228";
+      ctx.fillRect(hx - 56, hy, 112, 3);
+
+      // Windows
+      const drawWin = (wx, wy) => {
+        ctx.fillStyle = "#181228";
+        ctx.fillRect(wx - 1, wy - 1, 14, 11);
+        ctx.fillStyle = "#ffd466";
+        ctx.fillRect(wx, wy, 12, 9);
+      };
+      drawWin(hx - 38, hy - 28);
+      drawWin(hx - 16, hy - 28);
+      drawWin(hx + 6,  hy - 28);
+      drawWin(hx + 28, hy - 28);
+
+      // Standing Astronaut on the lunar regolith next to the habitat!
+      ctx.drawImage(PixelArt.sprites.suit_down_idle, hx + 76, hy - 18, 22, 32);
+    }
+
+    /* Animated Lunar Approach & Touchdown Cutscene (End of Day 0 -> Day 1) */
+    function drawLandingCutscene(progress, timeMs) {
+      drawStarfieldAndEarth(timeMs);
+      drawLunarSurface();
+
+      // Landing pad markers
+      ctx.fillStyle = "#334155";
+      ctx.fillRect(190, 240, 100, 8);
+      ctx.fillStyle = "#ffd466";
+      ctx.fillRect(196, 242, 12, 3);
+      ctx.fillRect(272, 242, 12, 3);
+
+      // Spacecraft descends smoothly from y=34 to y=214
+      const eased = 1 - Math.pow(1 - Math.min(1, progress / 0.78), 2);
+      const landerY = Math.round(34 + eased * 180);
+      const lx = 240;
+
+      // Descent thruster flame while descending
+      if (progress < 0.78) {
+        const flicker = (Math.floor(timeMs / 60) % 2) * 5;
+        ctx.fillStyle = "#f97316";
+        ctx.beginPath();
+        ctx.moveTo(lx - 12, landerY + 26);
+        ctx.lineTo(lx + 12, landerY + 26);
+        ctx.lineTo(lx, landerY + 46 + flicker);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = "#fef08a";
+        ctx.beginPath();
+        ctx.moveTo(lx - 6, landerY + 26);
+        ctx.lineTo(lx + 6, landerY + 26);
+        ctx.lineTo(lx, landerY + 37 + flicker);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        // Touchdown regolith dust puffs
+        const puff = Math.min(26, (progress - 0.78) * 110);
+        ctx.fillStyle = "rgba(203, 213, 225, 0.55)";
+        ctx.fillRect(lx - 34 - puff, 234, 16, 6);
+        ctx.fillRect(lx + 18 + puff, 234, 16, 6);
+      }
+
+      // Landing struts
+      ctx.fillStyle = "#cbd5e1";
+      ctx.fillRect(lx - 26, landerY + 14, 4, 14);
+      ctx.fillRect(lx + 22, landerY + 14, 4, 14);
+      ctx.fillRect(lx - 30, landerY + 26, 10, 3);
+      ctx.fillRect(lx + 20, landerY + 26, 10, 3);
+
+      // ASTRA Lunar Lander Hull
+      ctx.fillStyle = "#181228";
+      ctx.fillRect(lx - 22, landerY - 14, 44, 32);
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(lx - 20, landerY - 12, 40, 28);
+      ctx.fillStyle = "#2563eb";
+      ctx.fillRect(lx - 20, landerY + 6, 40, 6);
+      ctx.fillStyle = "#f97316";
+      ctx.fillRect(lx - 14, landerY - 6, 28, 8);
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillRect(lx - 8, landerY - 4, 16, 4);
+
+      // Banner text
+      ctx.fillStyle = "rgba(9, 11, 24, 0.82)";
+      ctx.fillRect(70, 18, 340, 34);
+      ctx.strokeStyle = "#ffd466";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(70, 18, 340, 34);
+
+      ctx.fillStyle = "#ffd466";
+      ctx.font = "9px 'Press Start 2P', monospace";
+      ctx.textAlign = "center";
+      if (progress < 0.78) {
+        ctx.fillText("LUNAR DESCENT IN PROGRESS...", 240, 39);
+      } else {
+        ctx.fillStyle = "#4fd190";
+        ctx.fillText("DAY 1 — LUNAR MISSION BEGINS", 240, 39);
+      }
+    }
+
+    function drawSleepCutscene(progress, timeMs) {
+      ctx.fillStyle = "#090b18";
+      ctx.fillRect(0, 0, 480, 320);
+      const bob = Math.sin(timeMs / 260) * 3;
+      ctx.fillStyle = "#ffd466";
+      ctx.font = "11px 'Press Start 2P', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("z  z  Z ...", 240, 148 + bob);
+      ctx.fillStyle = "#93c5fd";
+      ctx.font = "8px 'Press Start 2P', monospace";
+      ctx.fillText("Drifting off to sleep...", 240, 174);
+    }
+
+    function drawRoom(state, nearObj, walkFrameIndex, timeMs) {
+      const room = RoomDefinitions[state.room];
+      const { x1, y1, x2, y2 } = room.bounds;
+      const roomW = x2 - x1;
+      const roomH = y2 - y1;
+
+      ctx.fillStyle = "#090b18";
+      ctx.fillRect(0, 0, 480, 320);
+
+      // Station / Room Walls
+      ctx.fillStyle = room.wallTrim;
+      ctx.fillRect(x1 - 12, y1 - 22, roomW + 24, roomH + 34);
+      ctx.fillStyle = room.wallTop;
+      ctx.fillRect(x1 - 8, y1 - 18, roomW + 16, 18);
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.14)";
+      for (let rx = x1 + 4; rx < x2 - 4; rx += 32) {
+        ctx.fillRect(rx, y1 - 16, 28, 2);
+      }
+
+      ctx.fillStyle = "#f8f5ec";
+      ctx.font = "7px 'Press Start 2P', monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(room.name.toUpperCase(), x1, y1 - 6);
+
+      // Paneled Composite Floor Tiles (Non-brown!)
+      for (let ty = y1; ty < y2; ty += 16) {
+        for (let tx = x1; tx < x2; tx += 16) {
+          const checker = ((Math.floor((tx - x1) / 16) + Math.floor((ty - y1) / 16)) & 1);
+          const drawW = Math.min(16, x2 - tx);
+          const drawH = Math.min(16, y2 - ty);
+          ctx.fillStyle = checker ? room.floorB : room.floorA;
+          ctx.fillRect(tx, ty, drawW, drawH);
+
+          ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+          ctx.fillRect(tx, ty, drawW, 1);
+          ctx.fillRect(tx, ty, 1, drawH);
+        }
+      }
+
+      if (room.hasHazardTrim) {
+        for (let hx = x1; hx < x2 - 6; hx += 12) {
+          ctx.fillStyle = "#181228";
+          ctx.fillRect(hx, y1, 6, 3);
+          ctx.fillStyle = "#f2c230";
+          ctx.fillRect(hx + 6, y1, 6, 3);
+        }
+      }
+
+      if (room.hasCenterMat) {
+        const mx = 200, my = 152, mw = 80, mh = 42;
+        ctx.fillStyle = "rgba(59, 53, 92, 0.16)";
+        ctx.fillRect(mx, my, mw, mh);
+        ctx.strokeStyle = "rgba(59, 53, 92, 0.36)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(mx + 2, my + 2, mw - 4, mh - 4);
+      }
+
+      ctx.strokeStyle = "#181228";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x1 - 1, y1 - 1, roomW + 2, roomH + 2);
+
+      // Doors
+      for (const door of room.doors) {
+        ctx.fillStyle = "#181228";
+        ctx.fillRect(door.x, door.y, door.w, door.h);
+        ctx.fillStyle = "#2d2747";
+        ctx.fillRect(door.x + 2, door.y + 2, door.w - 4, door.h - 4);
+
+        ctx.fillStyle = door.color;
+        const stripY = door.y < y1 ? door.y + door.h - 4 : door.y + 2;
+        ctx.fillRect(door.x + 4, stripY, door.w - 8, 3);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "5px 'Press Start 2P', monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(door.label, door.x + door.w / 2, door.y + 12);
+      }
+
+      // Y-Sorted Objects & Player
+      const animFrame = Math.floor(timeMs / 420) % 2;
+      const list = [];
+
+      for (const obj of room.objects) {
+        list.push({
+          sortY: obj.y + obj.h,
+          draw: () => {
+            ctx.fillStyle = "rgba(24, 18, 40, 0.22)";
+            ctx.fillRect(obj.x + 2, obj.y + obj.h - 2, obj.w - 4, 4);
+
+            let spr = PixelArt.sprites[obj.sprite];
+            if (obj.kind === "grow_bed") {
+              const bed = state.cropBeds[obj.bedIndex];
+              const st = bed ? bed.status : "Empty";
+              spr = PixelArt.sprites[`bed_${st}_${animFrame}`];
+            } else if (obj.sprite && PixelArt.sprites[`${obj.sprite}_${animFrame}`]) {
+              spr = PixelArt.sprites[`${obj.sprite}_${animFrame}`];
+            }
+
+            if (spr) {
+              ctx.drawImage(spr, obj.x, obj.y, obj.w, obj.h);
+            }
+
+            // Status badge above Greenhouse Grow Beds
+            if (obj.kind === "grow_bed") {
+              const bed = state.cropBeds[obj.bedIndex];
+              if (bed) {
+                ctx.fillStyle = "#181228";
+                ctx.fillRect(obj.x + 3, obj.y - 11, obj.w - 6, 9);
+                ctx.fillStyle = bed.status === "Mature" ? "#4fd190" : bed.status === "Growing" ? "#ffd466" : "#cbd5e1";
+                ctx.font = "5px 'Press Start 2P', monospace";
+                ctx.textAlign = "center";
+                const tag = bed.status === "Growing" ? `${bed.remainingDays}D LEFT` : bed.status.toUpperCase();
+                ctx.fillText(tag, obj.x + obj.w / 2, obj.y - 4);
+              }
+            }
+
+            // Bobbing indicator ONLY above the single nearest interactive object
+            if (nearObj && nearObj.id === obj.id) {
+              const bob = Math.round(Math.sin(timeMs / 170) * 1.5);
+              const ix = Math.round(obj.x + obj.w / 2 - 4);
+              const iy = obj.y - (obj.kind === "grow_bed" ? 20 : 9) + bob;
+              ctx.fillStyle = "#181228";
+              ctx.fillRect(ix, iy, 8, 6);
+              ctx.fillStyle = "#ffd466";
+              ctx.fillRect(ix + 1, iy + 1, 6, 4);
+              ctx.fillStyle = "#181228";
+              ctx.fillRect(ix + 3, iy + 6, 2, 2);
+            }
+          }
+        });
+      }
+
+      list.push({
+        sortY: state.y,
+        draw: () => drawPlayer(state, walkFrameIndex)
+      });
+
+      list.sort((a, b) => a.sortY - b.sortY);
+      for (const item of list) {
+        item.draw();
+      }
+    }
+
+    function drawPlayer(state, walkFrameIndex) {
+      const px = Math.round(state.x);
+      const py = Math.round(state.y);
+
+      ctx.fillStyle = "rgba(24, 18, 40, 0.32)";
+      ctx.beginPath();
+      ctx.ellipse(px, py - 1, 7, 2.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      const suffix = walkFrameIndex === 1 ? "walk1" : walkFrameIndex === 3 ? "walk2" : "idle";
+      if (state.outfit === "suit") {
+        // Full Astronaut Spacesuit (18x26)
+        const spr = PixelArt.sprites[`suit_${state.facing}_${suffix}`] || PixelArt.sprites.suit_down_idle;
+        ctx.drawImage(spr, px - 9, py - 25, 18, 26);
+      } else {
+        // Casual Kid Clothes (16x24)
+        const spr = PixelArt.sprites[`kid_${state.facing}_${suffix}`] || PixelArt.sprites.kid_down_idle;
+        ctx.drawImage(spr, px - 8, py - 23, 16, 24);
+      }
+    }
+
+    function drawFadeOverlay(alpha) {
+      ctx.fillStyle = `rgba(8, 10, 20, ${Math.max(0, Math.min(1, alpha)).toFixed(3)})`;
+      ctx.fillRect(0, 0, 480, 320);
+    }
+
+    return {
+      drawMenuLunarBase,
+      drawLandingCutscene,
+      drawSleepCutscene,
+      drawRoom,
+      drawFadeOverlay
+    };
+  })();
+
+
+  /* =========================================================================
+   * MODULE 10: UIManager
+   * Handles HUD, Objective Bar, Machine Tutorials, Action Interfaces (Water,
+   * Oxygen, Repair, Greenhouse Grow/Harvest, Galley Eat/Drink), Pending Queue
+   * with Cancel/Refund, End-of-Day Simulation, Daily Reports, and Menus.
+   * ========================================================================= */
+  const UIManager = (() => {
+    const hudEl = document.getElementById("hud");
+    const objBarEl = document.getElementById("objectiveBar");
+    const toastEl = document.getElementById("toast");
+    const promptEl = document.getElementById("prompt");
+    const modalLayer = document.getElementById("modalLayer");
+
+    let modalOpen = false;
+    let simBusy = false;
+    let toastTimer = null;
+
+    function showToast(text) {
+      toastEl.textContent = text;
+      toastEl.style.display = "block";
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toastEl.style.display = "none";
+      }, 2500);
+    }
+
+    function setPrompt(text, onClickFn = null) {
+      if (text) {
+        promptEl.textContent = text;
+        promptEl.style.display = "block";
+        promptEl.onclick = onClickFn;
+      } else {
+        promptEl.style.display = "none";
+        promptEl.onclick = null;
+      }
+    }
+
+    function openModal(html, overlayClass = "") {
+      modalOpen = true;
+      modalLayer.style.display = "block";
+      modalLayer.innerHTML = `<div class="overlay ${overlayClass}">${html}</div>`;
+    }
+
+    function closeModal() {
+      modalOpen = false;
+      modalLayer.style.display = "none";
+      modalLayer.innerHTML = "";
+      updateHUD();
+    }
+
+    function bindBtn(id, fn) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener("click", () => {
+          AudioEngine.click();
+          fn();
+        });
+      }
+    }
+
+    function updateHUD() {
+      const mode = GameController.getMode();
+      const s = GameState.get();
+
+      if (mode !== "play" || s.phase === "story_classroom" || s.phase === "story_bedroom") {
+        hudEl.style.display = "none";
+        if (mode === "play" && (s.phase === "story_classroom" || s.phase === "story_bedroom")) {
+          objBarEl.style.display = "flex";
+          objBarEl.style.top = "0px";
+          objBarEl.innerHTML = s.phase === "story_classroom"
+            ? `<span>OBJECTIVE: Listen to Mr. Okafor's lesson, then walk to the [GO HOME] door.</span>`
+            : `<span>OBJECTIVE: Approach your bed and select [ SLEEP ].</span>`;
+        } else {
+          objBarEl.style.display = "none";
+        }
+        return;
+      }
+
+      hudEl.style.display = "flex";
+      objBarEl.style.display = "flex";
+      objBarEl.style.top = "54px";
+
+      const keysOrder = ["water", "oxygen", "food", "power", "integrity", "stamina"];
+      let html = "";
+      for (const k of keysOrder) {
+        const meta = CONFIG.resources[k];
+        const val = s.res[k];
+        const pct = Math.max(0, Math.min(100, (val / meta.max) * 100));
+        const isWarn =
+          (k === "oxygen" && val <= 8) ||
+          (k === "integrity" && val <= 25) ||
+          (k === "stamina" && val <= 20) ||
+          (k === "water" && val <= 16) ||
+          (k === "food" && val <= 14);
+
+        html += `
+          <div class="hud-cell ${isWarn ? "hud-warn" : ""}">
+            <div class="hud-top">
+              <span class="hud-label">${PixelArt.iconImg(k, 12, 12)} ${meta.name === "Base Integrity" ? "Integrity" : meta.name}</span>
+              <span class="hud-vals">${fmt(val)}/${meta.max}${meta.unit}</span>
+            </div>
+            <div class="hud-bar"><i style="width:${pct}%;background:${meta.color}"></i></div>
+          </div>
+        `;
+      }
+
+      if (s.phase === "day0") {
+        html += `<div class="hud-day">DAY 0<br>TUTORIAL</div>`;
+        html += `<div class="hud-actions"><button class="hud-btn" id="hud_pause">MENU</button></div>`;
+      } else {
+        html += `<div class="hud-day">DAY ${s.day} / ${CONFIG.totalDays}</div>`;
+        html += `
+          <div class="hud-actions">
+            <button class="hud-btn" id="hud_queue">QUEUE (${s.pendingQueue.length})</button>
+            <button class="hud-btn sim" id="hud_sim">END DAY</button>
+          </div>
+        `;
+      }
+
+      hudEl.innerHTML = html;
+
+      if (s.phase === "day0") {
+        const ready = GameLogicService.isDay0Complete(s);
+        const crewCount = [s.storyFlags.talkedNova, s.storyFlags.talkedEngineer, s.storyFlags.talkedScientist].filter(Boolean).length;
+        const machCount = Object.keys(s.storyFlags.inspectedMachines || {}).length;
+        objBarEl.innerHTML = ready
+          ? `<span style="color:#4fd190;">MISSION READY — DAY 0 COMPLETE!</span> <button class="hud-btn sim" id="obj_timeskip">[ TIME SKIP ]</button>`
+          : `<span>DAY 0 TUTORIAL (No Consumption) — Crew Talked: ${crewCount}/3 | Machines Inspected: ${machCount}/5</span>`;
+        bindBtn("hud_pause", openPauseMenu);
+        bindBtn("obj_timeskip", () => StoryManager.triggerTimeSkipLanding());
+      } else {
+        const powerWarn = s.res.power <= 0 ? `<span style="color:#ff5e5e;">POWER 0 kWh (Machines Offline)</span>` : `<span>Solar: +25 kWh | Base: -10 kWh | Crew: -15.14L W, -3.32kg O2, -12.14FP Food</span>`;
+        objBarEl.innerHTML = `${powerWarn} <span>Queued Actions: <b>${s.pendingQueue.length}</b></span>`;
+        bindBtn("hud_queue", openPendingQueueModal);
+        bindBtn("hud_sim", openEndDayConsole);
+      }
+    }
+
+    /* ----- DAY 0 SPACECRAFT MACHINE TUTORIAL MODAL ----- */
+    function openMachineTutorial(tutKey) {
+      const s = GameState.get();
+      s.storyFlags.inspectedMachines[tutKey] = true;
+      updateHUD();
+
+      const infoMap = {
+        water: {
+          title: "Water Recycling Machine",
+          icon: "mach_water",
+          does: "Filters and purifies cabin wastewater back into clean drinking and electrolysis water.",
+          consumes: "3 kWh Power + 3% Player Stamina",
+          produces: "+10 L Water (Max 200 L)",
+          when: "Queued during the day; +10 L Water is added after clicking SIMULATE / END DAY."
+        },
+        oxygen: {
+          title: "Oxygen Generator",
+          icon: "mach_oxygen",
+          does: "Uses water electrolysis to generate breathable oxygen for the four-astronaut crew.",
+          consumes: "2.25 L Water + 6 kWh Power + 3% Player Stamina",
+          produces: "+4 kg Oxygen (Max 50 kg)",
+          when: "Queued during the day; +4 kg Oxygen is added after clicking SIMULATE / END DAY."
+        },
+        repair: {
+          title: "Base Integrity Repair Unit",
+          icon: "mach_repair",
+          does: "Repairs micrometeorite wear and thermal stress to keep Base Integrity above 0%.",
+          consumes: "10 kWh Power + 20% Player Stamina",
+          produces: "+20% Base Integrity (Max 100%)",
+          when: "Queued during the day; +20% Base Integrity applies after clicking SIMULATE / END DAY."
+        },
+        greenhouse: {
+          title: "Hydroponic Greenhouse",
+          icon: "grow_bed",
+          does: "Cultivates lunar crops in nutrient mist. Requires 3 full days to mature before harvesting.",
+          consumes: "Grow Food: 8 L Water + 8 kWh Power + 20% Stamina + 1 Seed + 1 Nutrient Pack. Harvest Food: 23% Stamina.",
+          produces: "+15 FP Food (1 FP = 1,000 kcal) upon harvesting a Mature crop.",
+          when: "Planting starts a 3-day growth timer. After 3 completed days, Harvest Food yields +15 FP after simulation."
+        },
+        galley: {
+          title: "Crew Galley (Eat & Drink)",
+          icon: "mach_galley",
+          does: "Provides immediate food rations and hydration to restore astronaut stamina.",
+          consumes: "Eat Food: 2 FP Food | Drink Water: 2 L Water",
+          produces: "+3% Player Stamina per ration or drink (Max 100%)",
+          when: "Takes effect IMMEDIATELY when clicked (cannot be undone)."
+        }
+      };
+
+      const item = infoMap[tutKey];
+      openModal(`
+        <div class="window narrow">
+          <div class="win-header">
+            <h2 class="win-title">
+              ${PixelArt.iconImg(item.icon, 32, 22)}
+              <span>${item.title}</span>
+            </h2>
+            <span class="status-pill ready">DAY 0 TUTORIAL</span>
+          </div>
+          <div class="panel-box" style="font-size:9.5px;line-height:1.8;">
+            <p><b>What it does:</b> ${item.does}</p>
+            <p><b>Resources & Stamina Consumed:</b> ${item.consumes}</p>
+            <p><b>Output Produced:</b> ${item.produces}</p>
+            <p><b>When Output Becomes Available:</b> ${item.when}</p>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+            <button class="btn" id="tut_m_close">Got It!</button>
+          </div>
+        </div>
+      `);
+      bindBtn("tut_m_close", closeModal);
+    }
+
+    /* ----- SHARED MACHINE ACTION MODAL (Water, Oxygen, Repair) ----- */
+    function openQueuedMachinePanel(actionId, feedbackMsg = "", isError = false) {
+      const s = GameState.get();
+      const spec = CONFIG.actions[actionId];
+      const powerOffline = spec.requiresPower && s.res.power <= 0;
+      const queuedCount = s.pendingQueue.filter((q) => q.actionId === actionId).length;
+
+      const costBadges = Object.entries(spec.costs).map(([k, req]) => {
+        const meta = CONFIG.resources[k];
+        return `<span class="cost-tag">${PixelArt.iconImg(k, 13, 13)} -${fmt(req)} ${meta.unit} ${meta.name}</span>`;
+      }).join("");
+
+      const iconMap = {
+        recycleWater: "mach_water",
+        generateOxygen: "mach_oxygen",
+        repairBase: "mach_repair"
+      };
+
+      openModal(`
+        <div class="window">
+          <div class="win-header">
+            <h2 class="win-title">
+              ${PixelArt.iconImg(iconMap[actionId], 32, 22)}
+              <span>${spec.machineName}</span>
+            </h2>
+            <span class="status-pill ${powerOffline ? "offline" : "ready"}">
+              ${powerOffline ? "OFFLINE (0 kWh)" : `OPERATIONAL (QUEUED: ${queuedCount})`}
+            </span>
+          </div>
+
+          <p style="font-size:9.5px;margin:0 0 10px 0;">${spec.description}</p>
+
+          <div class="grid-2">
+            <div class="panel-box">
+              <h3>Required Costs (Reserved Immediately)</h3>
+              <div class="cost-row">${costBadges}</div>
+              <p style="font-size:8.5px;color:var(--ink-muted);margin-top:8px;">
+                Costs are deducted immediately upon clicking CONFIRM and refunded if cancelled before simulation.
+              </p>
+            </div>
+            <div class="panel-box">
+              <h3>Expected Output (After SIMULATE)</h3>
+              <div class="cost-row">
+                <span class="cost-tag out">${spec.outputText}</span>
+              </div>
+              <p style="font-size:8.5px;color:var(--ink-muted);margin-top:8px;">
+                ${spec.tutorialWhen}
+              </p>
+            </div>
+          </div>
+
+          <div class="msg-err" style="color:${isError ? "var(--bad)" : "var(--good)"};">${feedbackMsg}</div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+            <button class="btn secondary" id="qm_queue">View Pending Queue (${s.pendingQueue.length})</button>
+            <div>
+              <button class="btn secondary" id="qm_close">Close [ESC]</button>
+              <button class="btn good" id="qm_confirm" ${powerOffline ? "disabled" : ""}>CONFIRM ACTION</button>
+            </div>
+          </div>
+        </div>
+      `);
+
+      updateHUD();
+      bindBtn("qm_queue", openPendingQueueModal);
+      bindBtn("qm_close", closeModal);
+      bindBtn("qm_confirm", () => {
+        const res = GameLogicService.queueAction(s, actionId, null);
+        if (res.ok) {
+          AudioEngine.reserve();
+          openQueuedMachinePanel(actionId, res.message, false);
+        } else {
+          AudioEngine.warn();
+          openQueuedMachinePanel(actionId, res.message, true);
+        }
+      });
+    }
+
+    function openWaterPanel()  { openQueuedMachinePanel("recycleWater"); }
+    function openOxygenPanel() { openQueuedMachinePanel("generateOxygen"); }
+    function openRepairPanel() { openQueuedMachinePanel("repairBase"); }
+
+    /* ----- HYDROPONIC GREENHOUSE PANEL (Grow Food & Harvest Food) ----- */
+    function openGreenhousePanel(bedIndex, feedbackMsg = "", isError = false) {
+      const s = GameState.get();
+      const bed = s.cropBeds[bedIndex];
+      const growSpec = CONFIG.actions.growFood;
+      const harvSpec = CONFIG.actions.harvestFood;
+
+      const isEmpty = bed.status === "Empty";
+      const isGrowing = bed.status === "Growing";
+      const isMature = bed.status === "Mature";
+
+      const alreadyGrowQueued = s.pendingQueue.some((q) => q.actionId === "growFood" && q.bedIndex === bedIndex);
+      const alreadyHarvQueued = s.pendingQueue.some((q) => q.actionId === "harvestFood" && q.bedIndex === bedIndex);
+
+      const growCostsHtml = `
+        <span class="cost-tag">${PixelArt.iconImg("water", 13, 13)} -8 L Water</span>
+        <span class="cost-tag">${PixelArt.iconImg("power", 13, 13)} -8 kWh Power</span>
+        <span class="cost-tag">${PixelArt.iconImg("stamina", 13, 13)} -20% Stamina</span>
+        <span class="cost-tag">Seeds: ${s.supplies.seeds} (Req: 1)</span>
+        <span class="cost-tag">Nutrients: ${s.supplies.nutrients} (Req: 1)</span>
+      `;
+
+      const harvCostsHtml = `
+        <span class="cost-tag">${PixelArt.iconImg("stamina", 13, 13)} -23% Stamina</span>
+        <span class="cost-tag out">${PixelArt.iconImg("food", 13, 13)} +15 FP Food (15,000 kcal)</span>
+      `;
+
+      let statusLabel = "EMPTY — READY TO PLANT";
+      let pillClass = "";
+      if (isGrowing) {
+        statusLabel = `GROWING (${bed.remainingDays} DAY${bed.remainingDays === 1 ? "" : "S"} REMAINING)`;
+        pillClass = "growing";
+      } else if (isMature) {
+        statusLabel = "MATURE — READY TO HARVEST!";
+        pillClass = "ready";
+      }
+
+      openModal(`
+        <div class="window">
+          <div class="win-header">
+            <h2 class="win-title">
+              ${PixelArt.iconImg("grow_bed", 32, 22)}
+              <span>${bed.name} — Hydroponic Greenhouse</span>
+            </h2>
+            <span class="status-pill ${pillClass}">${statusLabel}</span>
+          </div>
+
+          <div class="grid-2">
+            <div class="panel-box">
+              <h3>1. Grow Food (Plant Crop)</h3>
+              <p style="font-size:9px;">Plants seedlings in nutrient mist. Matures after <b>3 completed days</b>.</p>
+              <div class="cost-row">${growCostsHtml}</div>
+              <div style="margin-top:8px;">
+                <button class="btn good" id="gh_plant" ${!isEmpty || alreadyGrowQueued ? "disabled" : ""}>
+                  ${alreadyGrowQueued ? "PLANTING QUEUED" : "CONFIRM GROW FOOD"}
+                </button>
+              </div>
+            </div>
+
+            <div class="panel-box">
+              <h3>2. Harvest Food (Mature Crop)</h3>
+              <p style="font-size:9px;">Harvests mature crops for <b>+15 FP</b> and resets bed to Empty.</p>
+              <div class="cost-row">${harvCostsHtml}</div>
+              <div style="margin-top:8px;">
+                <button class="btn" id="gh_harvest" ${!isMature || alreadyHarvQueued ? "disabled" : ""}>
+                  ${alreadyHarvQueued ? "HARVEST QUEUED" : "CONFIRM HARVEST FOOD"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="msg-err" style="color:${isError ? "var(--bad)" : "var(--good)"};">${feedbackMsg}</div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+            <button class="btn secondary" id="gh_switch">Switch to ${bedIndex === 0 ? "Grow Bed B" : "Grow Bed A"}</button>
+            <button class="btn secondary" id="gh_close">Close [ESC]</button>
+          </div>
+        </div>
+      `);
+
+      updateHUD();
+      bindBtn("gh_switch", () => openGreenhousePanel(bedIndex === 0 ? 1 : 0));
+      bindBtn("gh_close", closeModal);
+      bindBtn("gh_plant", () => {
+        const res = GameLogicService.queueAction(s, "growFood", bedIndex);
+        if (res.ok) {
+          AudioEngine.reserve();
+          openGreenhousePanel(bedIndex, res.message, false);
+        } else {
+          AudioEngine.warn();
+          openGreenhousePanel(bedIndex, res.message, true);
+        }
+      });
+      bindBtn("gh_harvest", () => {
+        const res = GameLogicService.queueAction(s, "harvestFood", bedIndex);
+        if (res.ok) {
+          AudioEngine.reserve();
+          openGreenhousePanel(bedIndex, res.message, false);
+        } else {
+          AudioEngine.warn();
+          openGreenhousePanel(bedIndex, res.message, true);
+        }
+      });
+    }
+
+    /* ----- CREW GALLEY: IMMEDIATE EAT FOOD & DRINK WATER ----- */
+    function openGalleyPanel(feedbackMsg = "", isError = false) {
+      const s = GameState.get();
+      openModal(`
+        <div class="window narrow">
+          <div class="win-header">
+            <h2 class="win-title">
+              ${PixelArt.iconImg("mach_galley", 32, 22)}
+              <span>Crew Galley — Sustenance</span>
+            </h2>
+            <span class="status-pill ready">STAMINA: ${fmt(s.res.stamina)}%</span>
+          </div>
+
+          <p style="font-size:9px;line-height:1.7;">
+            Eating food or drinking water restores <b>+3% Stamina immediately</b> (capped at 100%). These actions take effect right away and cannot be undone.
+          </p>
+
+          <div class="grid-2">
+            <div class="panel-box" style="text-align:center;">
+              <h3>Eat Food Ration</h3>
+              <p style="font-size:9px;">Cost: <b>2 FP</b> (Avail: ${fmt(s.res.food)} FP)</p>
+              <p style="font-size:9px;color:var(--good);">Effect: <b>+3% Stamina</b></p>
+              <button class="btn good" id="gal_eat">EAT FOOD (-2 FP)</button>
+            </div>
+            <div class="panel-box" style="text-align:center;">
+              <h3>Drink Water</h3>
+              <p style="font-size:9px;">Cost: <b>2 L</b> (Avail: ${fmt(s.res.water)} L)</p>
+              <p style="font-size:9px;color:var(--good);">Effect: <b>+3% Stamina</b></p>
+              <button class="btn good" id="gal_drink">DRINK WATER (-2 L)</button>
+            </div>
+          </div>
+
+          <div class="msg-err" style="color:${isError ? "var(--bad)" : "var(--good)"};">${feedbackMsg}</div>
+
+          <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+            <button class="btn secondary" id="gal_close">Close [ESC]</button>
+          </div>
+        </div>
+      `);
+
+      updateHUD();
+      bindBtn("gal_close", closeModal);
+      bindBtn("gal_eat", () => {
+        const res = GameLogicService.consumeSustenance(s, "eatFood");
+        res.ok ? AudioEngine.reserve() : AudioEngine.warn();
+        openGalleyPanel(res.message, !res.ok);
+      });
+      bindBtn("gal_drink", () => {
+        const res = GameLogicService.consumeSustenance(s, "drinkWater");
+        res.ok ? AudioEngine.reserve() : AudioEngine.warn();
+        openGalleyPanel(res.message, !res.ok);
+      });
+    }
+
+    /* ----- PENDING ACTIONS QUEUE & CANCELLATION MODAL ----- */
+    function openPendingQueueModal() {
+      const s = GameState.get();
+      const itemsHtml = s.pendingQueue.length
+        ? s.pendingQueue.map((item) => {
+            const costStr = Object.entries(item.reservedCosts).map(([k, v]) => {
+              if (k === "seeds") return `${v} Seed`;
+              if (k === "nutrients") return `${v} Nutrient`;
+              return `${fmt(v)} ${CONFIG.resources[k].unit} ${CONFIG.resources[k].name}`;
+            }).join(", ");
+
+            return `
+              <div class="queue-item">
+                <div>
+                  <div><b>${item.label}</b></div>
+                  <div style="color:var(--ink-muted);margin-top:3px;">Reserved: ${costStr}</div>
+                  <div style="color:var(--good);margin-top:2px;">Expected: ${item.expectedOutput}</div>
+                </div>
+                <button class="btn danger small" data-cancel="${item.queueId}">Cancel & Refund</button>
+              </div>
+            `;
+          }).join("")
+        : `<p style="font-size:9.5px;color:var(--ink-muted);">No pending actions queued for Day ${s.day}.</p>`;
+
+      openModal(`
+        <div class="window">
+          <div class="win-header">
+            <h2 class="win-title">Pending Actions Queue — Day ${s.day}</h2>
+            <span class="status-pill">${s.pendingQueue.length} QUEUED</span>
+          </div>
+
+          <p style="font-size:9px;color:var(--ink-muted);margin-top:0;">
+            Costs shown below are already reserved from your HUD totals. Cancelling refunds 100% of reserved resources and stamina.
+          </p>
+
+          <div class="panel-box" style="max-height:290px;overflow-y:auto;">
+            ${itemsHtml}
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+            <button class="btn secondary" id="pq_close">Back</button>
+            <button class="btn good" id="pq_sim">Proceed to End Day</button>
+          </div>
+        </div>
+      `);
+
+      modalLayer.querySelectorAll("[data-cancel]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const qid = btn.getAttribute("data-cancel");
+          if (GameLogicService.cancelQueuedAction(s, qid)) {
+            AudioEngine.retrieve();
+            openPendingQueueModal();
+            updateHUD();
+          }
+        });
+      });
+
+      bindBtn("pq_close", closeModal);
+      bindBtn("pq_sim", openEndDayConsole);
+    }
+
+    /* ----- END OF DAY SIMULATION CONFIRMATION ----- */
+    function openEndDayConsole() {
+      if (simBusy) return;
+      const s = GameState.get();
+
+      const queueSummary = s.pendingQueue.length
+        ? s.pendingQueue.map((q) => `<div style="font-size:9px;padding:3px 0;">• <b>${q.label}</b> -> ${q.expectedOutput}</div>`).join("")
+        : `<p style="font-size:9px;color:var(--warn);">No machine actions queued! Only automatic solar/base power and crew consumption will run.</p>`;
+
+      openModal(`
+        <div class="window">
+          <div class="win-header">
+            <h2 class="win-title">
+              ${PixelArt.iconImg("console", 28, 18)}
+              <span>Day ${s.day} — End Day & Simulate</span>
+            </h2>
+            <span class="status-pill">DAY ${s.day} / ${CONFIG.totalDays}</span>
+          </div>
+
+          <div class="grid-2">
+            <div class="panel-box">
+              <h3>Queued Actions (${s.pendingQueue.length})</h3>
+              ${queueSummary}
+              <div style="margin-top:8px;">
+                <button class="btn secondary small" id="ed_edit">Edit / Cancel Queue</button>
+              </div>
+            </div>
+
+            <div class="panel-box">
+              <h3>Automatic Overnight Systems</h3>
+              <p style="font-size:8.5px;margin:4px 0;color:var(--good);">+25 kWh Solar Generation</p>
+              <p style="font-size:8.5px;margin:4px 0;color:var(--bad);">-10 kWh Base Consumption (+15 kWh net)</p>
+              <p style="font-size:8.5px;margin:4px 0;color:var(--bad);">-15.14 L Water (4 Astronauts)</p>
+              <p style="font-size:8.5px;margin:4px 0;color:var(--bad);">-3.32 kg Oxygen (4 Astronauts)</p>
+              <p style="font-size:8.5px;margin:4px 0;color:var(--bad);">-12.14 FP Food (4 Astronauts)</p>
+              <p style="font-size:8.5px;margin:4px 0;color:var(--ink-muted);">+ Crop Growth & Daily Lunar Event</p>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+            <button class="btn secondary" id="ed_cancel">Cancel</button>
+            <button class="btn good" id="ed_simulate">SIMULATE / END DAY</button>
+          </div>
+        </div>
+      `);
+
+      bindBtn("ed_edit", openPendingQueueModal);
+      bindBtn("ed_cancel", closeModal);
+      bindBtn("ed_simulate", runSimulationSequence);
+    }
+
+    function runSimulationSequence() {
+      if (simBusy) return;
+      simBusy = true;
+      const s = GameState.get();
+
+      openModal(`
+        <div class="window narrow" style="text-align:center;">
+          <h2 style="font-size:13px;margin:0 0 8px 0;">Simulating Day ${s.day}...</h2>
+          <p style="font-size:9px;color:var(--ink-muted);">Executing queued operations & overnight survival cycle</p>
+          <div class="sim-progress"><i id="simBar"></i></div>
+          <p id="simStepTxt" style="font-size:9px;">Step 1: Executing pending machine outputs...</p>
+        </div>
+      `);
+
+      const labels = [
+        "Step 1: Executing pending machine outputs...",
+        "Step 2: Calculating solar generation (+25 kWh) & base load (-10 kWh)...",
+        "Step 3: Applying 4-astronaut daily consumption...",
+        "Step 4–6: Updating crop timers, lunar events & survival checks..."
+      ];
+
+      let tick = 0;
+      const iv = setInterval(() => {
+        tick += 1;
+        const bar = document.getElementById("simBar");
+        const txt = document.getElementById("simStepTxt");
+        if (bar) bar.style.width = `${Math.min(100, tick * 10)}%`;
+        if (txt) txt.textContent = labels[Math.min(labels.length - 1, Math.floor(tick / 3))];
+        AudioEngine.simTick(tick);
+
+        if (tick >= 10) {
+          clearInterval(iv);
+          const report = GameLogicService.simulateEndOfDay(s);
+          simBusy = false;
+          if (!report.failureReason) {
+            GameState.save();
+            AudioEngine.success();
+          } else {
+            AudioEngine.warn();
+          }
+          openDailyReportModal(report);
+        }
+      }, 110);
+    }
+
+    function openDailyReportModal(report) {
+      updateHUD();
+
+      const resKeys = ["water", "oxygen", "food", "power", "integrity", "stamina"];
+      const resRows = resKeys.map((k) => {
+        const meta = CONFIG.resources[k];
+        const b = report.before[k];
+        const a = report.after[k];
+        const diff = Math.round((a - b) * 100) / 100;
+        const cls = diff >= 0 ? "delta-up" : "delta-dn";
+        const sign = diff >= 0 ? "+" : "";
+        return `
+          <div style="display:flex;justify-content:space-between;font-size:9px;padding:3px 0;border-bottom:1px solid var(--border-light);">
+            <span>${PixelArt.iconImg(k, 12, 12)} ${meta.name}</span>
+            <span>${fmt(b)} -> <b>${fmt(a)} ${meta.unit}</b> <span class="${cls}">(${sign}${fmt(diff)})</span></span>
+          </div>
+        `;
+      }).join("");
+
+      const prodHtml = report.producedLog.map((p) => `<div style="font-size:8.5px;color:var(--good);margin:2px 0;">+ ${p}</div>`).join("");
+      const consHtml = report.consumedLog.map((c) => `<div style="font-size:8.5px;color:var(--bad);margin:2px 0;">- ${c}</div>`).join("");
+      const cropHtml = report.maturedCrops.length
+        ? report.maturedCrops.map((m) => `<div style="font-size:8.5px;color:var(--good);margin:3px 0;">* ${m}</div>`).join("")
+        : `<div style="font-size:8.5px;color:var(--ink-muted);">No crops matured tonight.</div>`;
+
+      const warnHtml = report.warnings.map((w) =>
+        `<div style="font-size:8.5px;color:var(--warn);margin:3px 0;">! ${w}</div>`
+      ).join("");
+
+      let footerBtnHtml = "";
+      if (report.failureReason) {
+        footerBtnHtml = `<button class="btn danger" id="rep_fail">View Mission Failure</button>`;
+      } else if (report.isFinalDay) {
+        footerBtnHtml = `<button class="btn good" id="rep_win">Complete 7-Day Mission!</button>`;
+      } else {
+        footerBtnHtml = `<button class="btn good" id="rep_cont">Begin Day ${report.day + 1}</button>`;
+      }
+
+      openModal(`
+        <div class="window">
+          <div class="win-header">
+            <h2 class="win-title">Daily Mission Report — Day ${report.day}</h2>
+            <span class="status-pill ${report.failureReason ? "offline" : "ready"}">
+              ${report.failureReason ? "CRITICAL ALERT" : `NEXT: DAY ${Math.min(7, report.day + 1)}`}
+            </span>
+          </div>
+
+          <div class="grid-2">
+            <div class="panel-box">
+              <h3>Resource Status</h3>
+              ${resRows}
+            </div>
+            <div class="panel-box">
+              <h3>Produced & Consumed</h3>
+              ${prodHtml}
+              ${consHtml}
+              <h3 style="margin-top:8px;">Greenhouse & Crops</h3>
+              ${cropHtml}
+            </div>
+          </div>
+
+          <div class="machine-quote">
+            <b>Daily Event — ${report.event.title}:</b> ${report.event.description}
+          </div>
+
+          ${warnHtml}
+
+          <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+            ${footerBtnHtml}
+          </div>
+        </div>
+      `);
+
+      bindBtn("rep_fail", () => openMissionOutcomeModal(false, report.failureReason));
+      bindBtn("rep_win", () => openMissionOutcomeModal(true, ""));
+      bindBtn("rep_cont", () => {
+        closeModal();
+        showToast(`Day ${GameState.get().day} — Lunar Base Operational!`);
+      });
+    }
+
+    function openMissionOutcomeModal(isVictory, reason) {
+      GameController.setMode("ending");
+      updateHUD();
+      const s = GameState.get();
+      openModal(`
+        <div class="window narrow" style="text-align:center;">
+          <h2 style="font-size:15px;color:${isVictory ? "var(--good)" : "var(--bad)"};margin:0 0 10px 0;">
+            ${isVictory ? "MISSION COMPLETE — 7 DAYS SURVIVED!" : "MISSION FAILED"}
+          </h2>
+          <p style="font-size:9.5px;line-height:1.8;">
+            ${isVictory
+              ? "Outstanding work, Junior Astronaut! You kept all four crew members alive and maintained the lunar base through all seven days."
+              : reason}
+          </p>
+          <p style="font-size:8.5px;color:var(--ink-muted);">
+            Final Telemetry — Water: ${fmt(s.res.water)} L | Oxygen: ${fmt(s.res.oxygen)} kg | Food: ${fmt(s.res.food)} FP | Power: ${fmt(s.res.power)} kWh | Integrity: ${fmt(s.res.integrity)}%
+          </p>
+          <div style="margin-top:14px;">
+            ${!isVictory && GameState.hasSave() ? `<button class="btn good" id="out_load">Load Last Auto-Save</button>` : ""}
+            <button class="btn" id="out_menu">Return to Main Menu</button>
+          </div>
+        </div>
+      `);
+
+      bindBtn("out_load", () => {
+        const loaded = GameState.load();
+        if (loaded) {
+          GameState.replace(loaded);
+          closeModal();
+          GameController.setMode("play");
+          updateHUD();
+          showToast(`Restored Day ${loaded.day}`);
+        }
+      });
+      bindBtn("out_menu", openMainMenu);
+    }
+
+    /* ----- MAIN MENU, PAUSE, SETTINGS & GUIDE ----- */
+    function openMainMenu() {
+      GameController.setMode("menu");
+      DialogueSystem.close(true);
+      setPrompt("");
+      updateHUD();
+      const hasSave = GameState.hasSave();
+
+      openModal(`
+        <h1 class="game-logo">ASTRA</h1>
+        <p class="game-subtitle">JUNIOR ASTRONAUT MISSION TRAINER</p>
+        <div class="menu-stack">
+          <button class="btn" id="mm_new">New Mission</button>
+          <button class="btn" id="mm_cont" ${hasSave ? "" : "disabled"}>Continue Saved Mission</button>
+          <button class="btn secondary" id="mm_guide">Mission Manual</button>
+          <button class="btn secondary" id="mm_exit">Exit</button>
+        </div>
+      `, "menu-overlay");
+
+      bindBtn("mm_new", () => {
+        if (GameState.hasSave()) {
+          openModal(`
+            <div class="window narrow">
+              <h2 style="font-size:13px;margin:0 0 8px 0;">Overwrite Saved Mission?</h2>
+              <p style="font-size:9.5px;line-height:1.8;">
+                Starting a new game from the classroom will overwrite your saved progress. Continue?
+              </p>
+              <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+                <button class="btn secondary" id="ov_no">Cancel</button>
+                <button class="btn danger" id="ov_yes">Start New Mission</button>
+              </div>
+            </div>
+          `);
+          bindBtn("ov_no", openMainMenu);
+          bindBtn("ov_yes", () => {
+            closeModal();
+            StoryManager.startNewGame();
+          });
+        } else {
+          closeModal();
+          StoryManager.startNewGame();
+        }
+      });
+
+      bindBtn("mm_cont", () => {
+        const loaded = GameState.load();
+        if (!loaded) {
+          AudioEngine.warn();
+          showToast("No valid save found.");
+          return;
+        }
+        GameState.replace(loaded);
+        closeModal();
+        GameController.setMode("play");
+        updateHUD();
+        showToast(loaded.day === 0 ? "Loaded Day 0 — Spacecraft Tutorial" : `Loaded Day ${loaded.day} / ${CONFIG.totalDays}`);
+      });
+
+      bindBtn("mm_guide", () => {
+        openModal(`
+          <div class="window">
+            <div class="win-header">
+              <h2 class="win-title">ASTRA Field Manual</h2>
+            </div>
+            <div style="font-size:9px;line-height:1.8;">
+              <p><b>Phase 1 & Day 0:</b> Begin in the classroom, walk home to sleep, wake up aboard the spacecraft in your spacesuit, and learn each system from Commander Nova, the Engineer, and the Scientist.</p>
+              <p><b>Days 1–7 Lunar Survival:</b> Manage Water (120/200 L), Oxygen (30/50 kg), Food (100/150 FP), Power (120/200 kWh), Base Integrity (100%), and Stamina (100%).</p>
+              <p><b>Queued Actions:</b> Costs are deducted immediately when queued, and outputs apply after clicking <b>SIMULATE / END DAY</b>. Eating 2 FP or drinking 2 L restores +3% Stamina immediately.</p>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+              <button class="btn" id="gd_back">Back</button>
+            </div>
+          </div>
+        `);
+        bindBtn("gd_back", openMainMenu);
+      });
+
+      bindBtn("mm_exit", () => {
+        openModal(`
+          <div class="window narrow" style="text-align:center;">
+            <h2 style="font-size:13px;margin:0 0 8px 0;">Exit ASTRA?</h2>
+            <p style="font-size:9.5px;line-height:1.8;">
+              You can close this browser tab anytime, or return to the Main Menu.
+            </p>
+            <button class="btn" id="ex_back">Return to Main Menu</button>
+          </div>
+        `);
+        bindBtn("ex_back", openMainMenu);
+      });
+    }
+
+    function openPauseMenu() {
+      openModal(`
+        <div class="window narrow" style="text-align:center;">
+          <h2 style="font-size:14px;margin:0 0 12px 0;">MISSION PAUSED</h2>
+          <div class="menu-stack">
+            <button class="btn" id="p_resume">Resume</button>
+            <button class="btn secondary" id="p_settings">Settings</button>
+            <button class="btn secondary" id="p_save">Save Progress</button>
+            <button class="btn danger" id="p_menu">Main Menu</button>
+          </div>
+        </div>
+      `);
+
+      bindBtn("p_resume", closeModal);
+      bindBtn("p_settings", openSettingsPanel);
+      bindBtn("p_save", () => {
+        const ok = GameState.save();
+        closeModal();
+        showToast(ok ? "Mission progress saved!" : "Unable to save.");
+      });
+      bindBtn("p_menu", () => {
+        closeModal();
+        openMainMenu();
+      });
+    }
+
+    function openSettingsPanel() {
+      const vols = AudioEngine.getVolumes();
+      openModal(`
+        <div class="window narrow">
+          <div class="win-header">
+            <h2 class="win-title">Settings</h2>
+          </div>
+
+          <div class="panel-box" style="margin-bottom:10px;">
+            <h3>Sound Effects (No Background Music)</h3>
+            <p style="font-size:9.5px;display:flex;justify-content:space-between;align-items:center;">
+              <span>Master Volume</span>
+              <input type="range" id="set_vm" min="0" max="100" value="${Math.round(vols.master * 100)}">
+            </p>
+            <p style="font-size:9.5px;display:flex;justify-content:space-between;align-items:center;">
+              <span>Effects Volume</span>
+              <input type="range" id="set_vs" min="0" max="100" value="${Math.round(vols.sfx * 100)}">
+            </p>
+            <button class="btn secondary small" id="set_test">Test SFX</button>
+          </div>
+
+          <div class="panel-box" style="margin-bottom:10px;">
+            <h3>Display & Controls</h3>
+            <button class="btn secondary small" id="set_fs">Toggle Fullscreen</button>
+            <p style="font-size:8.5px;line-height:1.8;margin:8px 0 0 0;">
+              <b>Arrows</b>: Walk | <b>Enter</b>: Interact / Advance | <b>Space</b>: Reveal Text | <b>Esc</b>: Pause / Close
+            </p>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;">
+            <button class="btn" id="set_back">Back</button>
+          </div>
+        </div>
+      `);
+
+      document.getElementById("set_vm").addEventListener("input", (e) => AudioEngine.setMaster(Number(e.target.value) / 100));
+      document.getElementById("set_vs").addEventListener("input", (e) => AudioEngine.setSfx(Number(e.target.value) / 100));
+      bindBtn("set_test", () => AudioEngine.reserve());
+      bindBtn("set_fs", () => {
+        if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+        else document.documentElement.requestFullscreen().catch(() => {});
+      });
+      bindBtn("set_back", openPauseMenu);
+    }
+
+    return {
+      isModalOpen: () => modalOpen,
+      isSimBusy: () => simBusy,
+      closeModal,
+      updateHUD,
+      showToast,
+      setPrompt,
+      openMainMenu,
+      openPauseMenu,
+      openMachineTutorial,
+      openWaterPanel,
+      openOxygenPanel,
+      openRepairPanel,
+      openGreenhousePanel,
+      openGalleyPanel,
+      openPendingQueueModal,
+      openEndDayConsole
+    };
+  })();
+
+
+  /* =========================================================================
+   * MODULE 11: GameController
+   * Manages game loop, movement, collisions, room transitions, sleep fade,
+   * and lunar landing cutscene.
+   * ========================================================================= */
+  const GameController = (() => {
+    let mode = "menu"; // "menu" | "play" | "sleep_cutscene" | "landing_cutscene" | "ending"
+    const keys = {};
+    let nearObject = null;
+
+    let fadePhase = "none"; // "none" | "out" | "in"
+    let fadeAlpha = 0;
+    let fadeMidCb = null;
+    let fadeEndCb = null;
+    let doorCooldown = 0;
+
+    let cutsceneTimer = 0;
+    let cutsceneDuration = 3.2;
+    let cutsceneDoneCb = null;
+
+    let walkAnimClock = 0;
+    let walkFrameIndex = 0;
+    let lastStepContactFrame = -1;
+
+    function rectsOverlap(a, b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    function getFootbox(x, y) {
+      return { x: x - 5, y: y - 5, w: 10, h: 6 };
+    }
+
+    function isBlocked(x, y) {
+      const s = GameState.get();
+      const room = RoomDefinitions[s.room];
+      const foot = getFootbox(x, y);
+      const { x1, y1, x2, y2 } = room.bounds;
+
+      const insideBounds =
+        foot.x >= x1 &&
+        foot.y >= y1 &&
+        foot.x + foot.w <= x2 &&
+        foot.y + foot.h <= y2;
+
+      if (!insideBounds) {
+        const onDoor = room.doors.some((d) => rectsOverlap(foot, d));
+        if (!onDoor) return true;
+      }
+
+      for (const obj of room.objects) {
+        const solid = {
+          x: obj.x + 2,
+          y: obj.y + Math.floor(obj.h * 0.45),
+          w: obj.w - 4,
+          h: Math.ceil(obj.h * 0.55)
+        };
+        if (rectsOverlap(foot, solid)) return true;
+      }
+      return false;
+    }
+
+    function startTransition(onMid, onComplete = null) {
+      fadePhase = "out";
+      fadeAlpha = 0;
+      fadeMidCb = onMid;
+      fadeEndCb = onComplete;
+    }
+
+    function startSleepCutscene(onComplete) {
+      mode = "sleep_cutscene";
+      cutsceneTimer = 0;
+      cutsceneDuration = 2.0;
+      cutsceneDoneCb = onComplete;
+      UIManager.setPrompt("");
+      UIManager.updateHUD();
+    }
+
+    function startLandingCutscene(onComplete) {
+      mode = "landing_cutscene";
+      cutsceneTimer = 0;
+      cutsceneDuration = 3.4;
+      cutsceneDoneCb = onComplete;
+      UIManager.setPrompt("");
+      UIManager.updateHUD();
+    }
+
+    function bindInput() {
+      window.addEventListener("keydown", (e) => {
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
+          e.preventDefault();
+        }
+        keys[e.key] = true;
+        if (e.repeat) return;
+
+        if (DialogueSystem.isActive()) {
+          DialogueSystem.handleKey(e.key);
+          return;
+        }
+
+        if (e.key === "Escape" && mode === "play") {
+          if (UIManager.isModalOpen()) {
+            if (!UIManager.isSimBusy()) {
+              AudioEngine.click();
+              UIManager.closeModal();
+            }
+          } else {
+            AudioEngine.click();
+            UIManager.openPauseMenu();
+          }
+          return;
+        }
+
+        if (e.key === "Enter" && mode === "play" && !UIManager.isModalOpen() && fadePhase === "none" && nearObject) {
+          if (nearObject.onInteract) nearObject.onInteract();
+        }
+      });
+
+      window.addEventListener("keyup", (e) => delete keys[e.key]);
+      window.addEventListener("blur", () => {
+        for (const k of Object.keys(keys)) delete keys[k];
+      });
+    }
+
+    let lastTime = 0;
+
+    function loop(timestamp) {
+      const dt = Math.min(0.05, (timestamp - lastTime) / 1000 || 0.016);
+      lastTime = timestamp;
+
+      if (doorCooldown > 0) {
+        doorCooldown = Math.max(0, doorCooldown - dt);
+      }
+
+      if (mode === "menu" || mode === "ending") {
+        Renderer.drawMenuLunarBase(timestamp);
+      } else if (mode === "sleep_cutscene") {
+        cutsceneTimer += dt;
+        Renderer.drawSleepCutscene(cutsceneTimer / cutsceneDuration, timestamp);
+        if (cutsceneTimer >= cutsceneDuration) {
+          mode = "play";
+          const cb = cutsceneDoneCb;
+          cutsceneDoneCb = null;
+          if (cb) cb();
+        }
+      } else if (mode === "landing_cutscene") {
+        cutsceneTimer += dt;
+        if (cutsceneTimer < cutsceneDuration * 0.75 && Math.floor(cutsceneTimer * 6) !== Math.floor((cutsceneTimer - dt) * 6)) {
+          AudioEngine.thruster();
+        }
+        Renderer.drawLandingCutscene(cutsceneTimer / cutsceneDuration, timestamp);
+        if (cutsceneTimer >= cutsceneDuration) {
+          mode = "play";
+          const cb = cutsceneDoneCb;
+          cutsceneDoneCb = null;
+          if (cb) cb();
+        }
+      } else if (mode === "play") {
+        const s = GameState.get();
+        const canControl = !UIManager.isModalOpen() && !DialogueSystem.isActive() && fadePhase === "none";
+
+        if (canControl) {
+          const dx = (keys.ArrowRight ? 1 : 0) - (keys.ArrowLeft ? 1 : 0);
+          const dy = (keys.ArrowDown ? 1 : 0) - (keys.ArrowUp ? 1 : 0);
+
+          if (dx !== 0 || dy !== 0) {
+            if (Math.abs(dx) >= Math.abs(dy)) {
+              s.facing = dx > 0 ? "right" : "left";
+            } else {
+              s.facing = dy > 0 ? "down" : "up";
+            }
+
+            const diag = dx !== 0 && dy !== 0 ? 0.7071 : 1;
+            const speed = 84 * dt * diag;
+
+            if (!isBlocked(s.x + dx * speed, s.y)) s.x += dx * speed;
+            if (!isBlocked(s.x, s.y + dy * speed)) s.y += dy * speed;
+
+            walkAnimClock += dt * 9.5;
+            walkFrameIndex = Math.floor(walkAnimClock) % 4;
+            if ((walkFrameIndex === 1 || walkFrameIndex === 3) && walkFrameIndex !== lastStepContactFrame) {
+              lastStepContactFrame = walkFrameIndex;
+              AudioEngine.step();
+            } else if (walkFrameIndex === 0 || walkFrameIndex === 2) {
+              lastStepContactFrame = -1;
+            }
+
+            if (doorCooldown <= 0) {
+              const foot = getFootbox(s.x, s.y);
+              const door = RoomDefinitions[s.room].doors.find((d) => rectsOverlap(foot, d));
+              if (door) {
+                if (door.action === "go_home") {
+                  doorCooldown = 0.6;
+                  StoryManager.goHomeFromClassroom();
+                } else if (door.to) {
+                  AudioEngine.door();
+                  startTransition(() => {
+                    s.room = door.to;
+                    s.x = door.spawnX;
+                    s.y = door.spawnY;
+                    s.facing = door.dir || "down";
+                    doorCooldown = 0.35;
+                  });
+                }
+              }
+            }
+          } else {
+            walkAnimClock = 0;
+            walkFrameIndex = 0;
+            lastStepContactFrame = -1;
+          }
+        } else {
+          walkFrameIndex = 0;
+        }
+
+        // Detect single nearest interactive object
+        nearObject = null;
+        if (canControl) {
+          const room = RoomDefinitions[s.room];
+          const foot = getFootbox(s.x, s.y);
+          let bestDist = Infinity;
+
+          for (const obj of room.objects) {
+            const reach = { x: obj.x - 11, y: obj.y - 11, w: obj.w + 22, h: obj.h + 22 };
+            if (rectsOverlap(foot, reach)) {
+              const dist = Math.hypot(s.x - (obj.x + obj.w / 2), s.y - (obj.y + obj.h / 2));
+              if (dist < bestDist) {
+                bestDist = dist;
+                nearObject = obj;
+              }
+            }
+          }
+        }
+
+        if (nearObject && canControl) {
+          const label = nearObject.kind === "sleep_bed"
+            ? "[ SLEEP ]"
+            : `[ENTER] ${nearObject.name}`;
+          UIManager.setPrompt(label, () => {
+            if (nearObject && nearObject.onInteract) nearObject.onInteract();
+          });
+        } else {
+          UIManager.setPrompt("");
+        }
+
+        Renderer.drawRoom(s, nearObject, walkFrameIndex, timestamp);
+      }
+
+      DialogueSystem.update(dt);
+
+      if (fadePhase === "out") {
+        fadeAlpha = Math.min(1, fadeAlpha + dt * 4.5);
+        Renderer.drawFadeOverlay(fadeAlpha);
+        if (fadeAlpha >= 1) {
+          if (fadeMidCb) {
+            fadeMidCb();
+            fadeMidCb = null;
+          }
+          fadePhase = "in";
+        }
+      } else if (fadePhase === "in") {
+        fadeAlpha = Math.max(0, fadeAlpha - dt * 4.5);
+        Renderer.drawFadeOverlay(fadeAlpha);
+        if (fadeAlpha <= 0) {
+          fadePhase = "none";
+          if (fadeEndCb) {
+            const cb = fadeEndCb;
+            fadeEndCb = null;
+            cb();
+          }
+        }
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    function fitViewport() {
+      const stage = document.getElementById("stage");
+      const scale = Math.min(window.innerWidth / 960, window.innerHeight / 640);
+      stage.style.transform = `scale(${Math.max(0.4, scale).toFixed(4)})`;
+    }
+
+    function start() {
+      PixelArt.init();
+      bindInput();
+      fitViewport();
+      window.addEventListener("resize", fitViewport);
+      UIManager.openMainMenu();
+      requestAnimationFrame(loop);
+    }
+
+    return {
+      start,
+      getMode: () => mode,
+      setMode: (m) => { mode = m; },
+      startTransition,
+      startSleepCutscene,
+      startLandingCutscene
+    };
+  })();
+
+  window.addEventListener("DOMContentLoaded", () => {
+    GameController.start();
+  });
+  </script>
 </body>
 </html>
