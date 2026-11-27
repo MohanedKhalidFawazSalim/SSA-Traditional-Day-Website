@@ -254,40 +254,24 @@ function goToPrevCard() {
   }
 }
 
-
 function initFlashcardControls() {
-  // Navigation buttons work with mouse clicks and touchscreen taps.
   dom.btnNextCard.addEventListener("click", goToNextCard);
   dom.btnPrevCard.addEventListener("click", goToPrevCard);
   dom.btnNextMobile.addEventListener("click", goToNextCard);
   dom.btnPrevMobile.addEventListener("click", goToPrevCard);
 
-  // Touchscreen, stylus and mouse swipe support.
-  let startX = 0;
-  let startY = 0;
+  dom.flashcardEl.addEventListener("touchstart", (event) => {
+    appState.touchStartX = event.changedTouches[0].screenX;
+  }, { passive: true });
 
-  dom.flashcardEl.addEventListener("pointerdown", (event) => {
-    if (event.pointerType === "mouse" && event.button !== 0) return;
-
-    startX = event.clientX;
-    startY = event.clientY;
-  });
-
-  dom.flashcardEl.addEventListener("pointerup", (event) => {
-    const differenceX = event.clientX - startX;
-    const differenceY = event.clientY - startY;
-
-    // Ignore small movements and vertical scrolling.
-    if (Math.abs(differenceX) < 50) return;
-    if (Math.abs(differenceX) < Math.abs(differenceY)) return;
-
-    // RTL: swipe right = next, swipe left = previous.
-    if (differenceX > 0) {
-      goToNextCard();
-    } else {
-      goToPrevCard();
-    }
-  });
+  dom.flashcardEl.addEventListener("touchend", (event) => {
+    appState.touchEndX = event.changedTouches[0].screenX;
+    const difference = appState.touchEndX - appState.touchStartX;
+    if (Math.abs(difference) < 45) return;
+    // في واجهة RTL: السحب لليمين يعرض البطاقة التالية.
+    if (difference > 0) goToNextCard();
+    else goToPrevCard();
+  }, { passive: true });
 }
 
 function initKeyboardAndResize() {
@@ -312,7 +296,54 @@ function initKeyboardAndResize() {
   });
 }
 
+function initThemeToggle() {
+  const toggle = getElement("theme-toggle");
+  const label = getElement("theme-toggle-label");
+  const icon = getElement("theme-toggle-icon");
+  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+
+  if (!toggle || !label || !icon) return;
+
+  function applyTheme(theme, savePreference = true) {
+    const useSudanMode = theme === "sudan";
+    document.documentElement.dataset.theme = useSudanMode ? "sudan" : "light";
+
+    toggle.setAttribute("aria-pressed", String(useSudanMode));
+    toggle.setAttribute("aria-label", useSudanMode ? "العودة إلى الوضع الافتراضي" : "تفعيل وضع السودان");
+    toggle.setAttribute("title", useSudanMode ? "العودة إلى الوضع الافتراضي" : "تفعيل وضع السودان");
+    label.textContent = useSudanMode ? "الوضع الافتراضي" : "وضع السودان";
+    icon.textContent = useSudanMode ? "☀" : "☾";
+
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute("content", useSudanMode ? "#F6F3EB" : "#FAF5ED");
+    }
+
+    if (savePreference) {
+      try {
+        window.localStorage.setItem("sudanese-heritage-theme-v4", useSudanMode ? "sudan" : "default");
+      } catch (error) {
+        // The theme still works when browser storage is unavailable.
+      }
+    }
+  }
+
+  let savedTheme = "default";
+  try {
+    savedTheme = window.localStorage.getItem("sudanese-heritage-theme-v4") || "default";
+  } catch (error) {
+    // Use the light theme when browser storage is unavailable.
+  }
+
+  applyTheme(savedTheme === "sudan" ? "sudan" : "default", false);
+
+  toggle.addEventListener("click", () => {
+    const currentTheme = document.documentElement.dataset.theme;
+    applyTheme(currentTheme === "sudan" ? "light" : "sudan");
+  });
+}
+
 function initApp() {
+  initThemeToggle();
   initWelcomeScreen();
   initNavigationButtons();
   initBubbleHub();
