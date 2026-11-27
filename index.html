@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#D32036" />
+  <meta name="theme-color" content="#FAF5ED" />
   <title>يوم التراث السوداني | احتفالية الهوية والثقافة</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -11,13 +11,26 @@
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- ملف التنسيقات الخارجي -->
-<link rel="stylesheet" href="css/style.css?v=2" />
+  <link rel="stylesheet" href="css/style.css?v=8" />
 
   <!-- defer يجعل JavaScript يعمل بعد تحليل HTML -->
   <script src="js/script.js" defer></script>
 </head>
 <body>
   <div class="heritage-pattern-overlay" aria-hidden="true"></div>
+
+  <!-- Global theme switch: stays visible on every screen. -->
+  <button
+    id="theme-toggle"
+    class="theme-toggle"
+    type="button"
+    aria-pressed="false"
+    aria-label="تفعيل وضع السودان"
+    title="تفعيل وضع السودان"
+  >
+    <span id="theme-toggle-icon" class="theme-toggle-icon" aria-hidden="true">☾</span>
+    <span id="theme-toggle-label">وضع السودان</span>
+  </button>
 
   <main id="app" class="app-container">
     <!-- 1. شاشة الترحيب -->
