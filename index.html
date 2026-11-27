@@ -1,41 +1,365 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>يوم التراث السوداني | احتفالية الهوية والثقافة</title>
 
-    <title>Traditional Day</title>
+  <!-- استيراد خطوط عربية متناسقة (Cairo للنصوص العصرية، Amiri للعبارات التراثية والشعرية) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;800&display=swap"
+    rel="stylesheet"
+  />
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css">
+  <!-- ملف التنسيقات الرئيسي -->
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
+  <!-- خلفية زخرفية خفيفة مستوحاة من الأنماط الهندسية السودانية -->
+  <div class="heritage-pattern-overlay" aria-hidden="true"></div>
 
-    <header>
-        <h1>Traditional Day</h1>
-        <p>Celebrating culture, heritage, and traditions</p>
-    </header>
+  <!-- الحاوية الرئيسية للتطبيق (تنقل سلس دون إعادة تحميل الصفحة) -->
+  <main id="app" class="app-container">
 
-    <main>
-        <section>
-            <h2>Wlcmm!</h2>
-            <p>Wlcmm to our Traditional Day website.</p>
-        </section>
+    <!-- =========================================================
+         1. شاشة الترحيب الافتتاحية (Welcome Screen)
+         ========================================================= -->
+    <section
+      id="screen-welcome"
+      class="screen screen--active welcome-screen"
+      role="button"
+      tabindex="0"
+      aria-label="شاشة الترحيب، اضغط في أي مكان للاستمرار"
+    >
+      <!-- حاوية العبارات الترحيبية العائمة -->
+      <div id="floating-greetings" class="floating-greetings" aria-hidden="true"></div>
 
-        <section>
-            <h2>About the Event</h2>
-            <p>More information coming soon!</p>
-        </section>
-    </main>
+      <!-- المحتوى الترحيبي المركزي -->
+      <div class="welcome-center">
+        <div class="welcome-emblem" aria-hidden="true">
+          <svg viewBox="0 0 120 40" class="sudanese-motif-svg">
+            <path d="M10 20 L25 8 L40 20 L25 32 Z" />
+            <path d="M45 20 L60 5 L75 20 L60 35 Z" />
+            <path d="M80 20 L95 8 L110 20 L95 32 Z" />
+          </svg>
+        </div>
 
-    <footer>
-        <p>Traditional Day © 2026</p>
-    </footer>
+        <span class="welcome-kicker">حبابكم في رحاب الأصالة</span>
+        <h1 class="welcome-title">أهلاً بيكم في يوم التراث السوداني</h1>
+        <p class="welcome-subtitle">
+          رحلة تفاعلية نحتفي فيها بتنوعنا الثقافي، إرثنا الأدبي، وألحاننا الخالدة
+        </p>
 
-    <!-- JavaScript -->
-    <script src="js/script.js"></script>
+        <div class="welcome-prompt">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span>اضغط في أي مكان للاستمرار</span>
+        </div>
+      </div>
+    </section>
 
+    <!-- =========================================================
+         2. شاشة التنقل الرئيسية (Main Navigation Screen)
+         ========================================================= -->
+    <section id="screen-main" class="screen main-screen" aria-hidden="true">
+      <header class="screen-header">
+        <button
+          type="button"
+          class="btn-back"
+          data-target="screen-welcome"
+          aria-label="العودة إلى شاشة الترحيب"
+        >
+          <span class="btn-back-icon" aria-hidden="true">→</span>
+          <span>شاشة الترحيب</span>
+        </button>
+
+        <div class="brand-badge">يوم التراث السوداني</div>
+      </header>
+
+      <div class="main-content">
+        <div class="section-intro">
+          <h2 class="section-heading">اكتشف ملامح تراثنا</h2>
+          <p class="section-subheading">اختر أحد القسمين الرئيسيين لبدء جولتك الثقافية</p>
+        </div>
+
+        <div class="main-cards-grid">
+          <!-- القسم الأول: أغاني وأغاني -->
+          <button
+            type="button"
+            id="btn-section-songs"
+            class="main-card main-card--songs"
+            data-target="screen-songs"
+          >
+            <div class="main-card-pattern" aria-hidden="true"></div>
+            <div class="main-card-icon" aria-hidden="true">
+              <svg viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4" />
+                <path d="M26 42V22L44 18V38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="22" cy="42" r="5" stroke="currentColor" stroke-width="2.5" />
+                <circle cx="40" cy="38" r="5" stroke="currentColor" stroke-width="2.5" />
+              </svg>
+            </div>
+            <div class="main-card-body">
+              <span class="main-card-tag">الموسيقى والغناء</span>
+              <h3 class="main-card-title">أغاني وأغاني</h3>
+              <p class="main-card-desc">
+                محطات موسيقية وأغانٍ سودانية خالدة تسافر بنا عبر الوجدان السوداني.
+              </p>
+            </div>
+            <span class="main-card-cta">
+              <span>دخول القسم</span>
+              <span aria-hidden="true">←</span>
+            </span>
+          </button>
+
+          <!-- القسم الثاني: لمحات من ثقافتنا -->
+          <button
+            type="button"
+            id="btn-section-culture"
+            class="main-card main-card--culture"
+            data-target="screen-culture-hub"
+          >
+            <div class="main-card-pattern" aria-hidden="true"></div>
+            <div class="main-card-icon" aria-hidden="true">
+              <svg viewBox="0 0 64 64" fill="none">
+                <polygon points="32,8 56,32 32,56 8,32" stroke="currentColor" stroke-width="2.5" />
+                <polygon points="32,16 48,32 32,48 16,32" stroke="currentColor" stroke-width="2" />
+                <circle cx="32" cy="32" r="5" fill="currentColor" />
+              </svg>
+            </div>
+            <div class="main-card-body">
+              <span class="main-card-tag">الأدب، الشعر والهوية</span>
+              <h3 class="main-card-title">لمحات من ثقافتنا</h3>
+              <p class="main-card-desc">
+                استكشف القصائد والروايات، تنوع العادات، وأبرز الشخصيات في تاريخ السودان.
+              </p>
+            </div>
+            <span class="main-card-cta">
+              <span>استكشاف اللمحات</span>
+              <span aria-hidden="true">←</span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         3. شاشة "أغاني وأغاني" (قيد التطوير مستقبلاً)
+         ========================================================= -->
+    <section id="screen-songs" class="screen songs-screen" aria-hidden="true">
+      <header class="screen-header">
+        <button
+          type="button"
+          class="btn-back"
+          data-target="screen-main"
+          aria-label="العودة إلى القائمة الرئيسية"
+        >
+          <span class="btn-back-icon" aria-hidden="true">→</span>
+          <span>الرئيسية</span>
+        </button>
+
+        <div class="brand-badge">أغاني وأغاني</div>
+      </header>
+
+      <div class="placeholder-wrapper">
+        <div class="placeholder-card">
+          <div class="placeholder-icon" aria-hidden="true">♪</div>
+          <span class="placeholder-badge">قريباً</span>
+          <h2 class="placeholder-title">قسم أغاني وأغاني قيد التجهيز</h2>
+          <p class="placeholder-text">
+            نعمل حالياً على إعداد مكتبة تفاعلية تضم روائع الغناء السوداني وتوثيق قصصها وألحانها.
+            سيُضاف المحتوى لهذا القسم في التحديث القادم.
+          </p>
+          <button type="button" class="btn-primary" data-target="screen-main">
+            العودة للقائمة الرئيسية
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         4. شاشة الفقاعات التفاعلية - "لمحات من ثقافتنا"
+         ========================================================= -->
+    <section id="screen-culture-hub" class="screen culture-hub-screen" aria-hidden="true">
+      <header class="screen-header">
+        <button
+          type="button"
+          class="btn-back"
+          data-target="screen-main"
+          aria-label="العودة إلى القائمة الرئيسية"
+        >
+          <span class="btn-back-icon" aria-hidden="true">→</span>
+          <span>الرئيسية</span>
+        </button>
+
+        <div class="brand-badge">لمحات من ثقافتنا</div>
+      </header>
+
+      <div class="hub-intro">
+        <p>اختر أحد المسارات الثقافية المتفرعة لاستعراض البطاقات المعرفية</p>
+      </div>
+
+      <!-- شبكة الفقاعات المترابطة (الفقاعة المركزية + 4 فقاعات فرعية + خطوط الربط) -->
+      <div id="bubble-hub" class="bubble-hub">
+        <!-- طبقة SVG لخطوط الربط الديناميكية بين المركز والفروع -->
+        <svg id="hub-connectors" class="hub-connectors" aria-hidden="true"></svg>
+
+        <!-- الفقاعة المركزية -->
+        <div id="bubble-center" class="bubble-center" role="region" aria-label="لمحات من ثقافتنا">
+          <div class="bubble-center-ring" aria-hidden="true"></div>
+          <span class="bubble-center-label">محور التراث</span>
+          <h2 class="bubble-center-title">لمحات من ثقافتنا</h2>
+        </div>
+
+        <!-- الفقاعة الفرعية 1: قصائد وأبيات شعرية -->
+        <button
+          type="button"
+          class="bubble-branch bubble-branch--1"
+          data-category="poetry"
+        >
+          <span class="bubble-branch-num" aria-hidden="true">01</span>
+          <span class="bubble-branch-title">قصائد وأبيات شعرية</span>
+          <span class="bubble-branch-meta">10 بطاقات</span>
+        </button>
+
+        <!-- الفقاعة الفرعية 2: الأدب والرواية السودانية -->
+        <button
+          type="button"
+          class="bubble-branch bubble-branch--2"
+          data-category="literature"
+        >
+          <span class="bubble-branch-num" aria-hidden="true">02</span>
+          <span class="bubble-branch-title">الأدب والرواية السودانية</span>
+          <span class="bubble-branch-meta">10 بطاقات</span>
+        </button>
+
+        <!-- الفقاعة الفرعية 3: اختلاف العادات والثقافات السودانية -->
+        <button
+          type="button"
+          class="bubble-branch bubble-branch--3"
+          data-category="traditions"
+        >
+          <span class="bubble-branch-num" aria-hidden="true">03</span>
+          <span class="bubble-branch-title">اختلاف العادات والثقافات السودانية</span>
+          <span class="bubble-branch-meta">10 بطاقات</span>
+        </button>
+
+        <!-- الفقاعة الفرعية 4: أبرز الشخصيات السودانية -->
+        <button
+          type="button"
+          class="bubble-branch bubble-branch--4"
+          data-category="personalities"
+        >
+          <span class="bubble-branch-num" aria-hidden="true">04</span>
+          <span class="bubble-branch-title">أبرز الشخصيات السودانية</span>
+          <span class="bubble-branch-meta">10 بطاقات</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- =========================================================
+         5. شاشة البطاقات التعليمية/المعرفية (Flashcards Screen)
+         ========================================================= -->
+    <section id="screen-flashcards" class="screen flashcards-screen" aria-hidden="true">
+      <header class="screen-header">
+        <button
+          type="button"
+          id="btn-back-to-hub"
+          class="btn-back"
+          data-target="screen-culture-hub"
+          aria-label="العودة إلى لمحات من ثقافتنا"
+        >
+          <span class="btn-back-icon" aria-hidden="true">→</span>
+          <span>العودة للفئات</span>
+        </button>
+
+        <div id="flashcard-category-badge" class="brand-badge">الفئة الثقافية</div>
+      </header>
+
+      <div class="flashcards-wrapper">
+        <div class="flashcard-header-info">
+          <h2 id="flashcard-category-title" class="flashcard-category-title">عنوان الفئة</h2>
+          <!-- شريط النقاط المؤشر للموضع الحالي -->
+          <div id="flashcard-dots" class="flashcard-dots" aria-label="مؤشر البطاقات"></div>
+        </div>
+
+        <!-- منطقة عرض البطاقة وأزرار التنقل -->
+        <div class="flashcard-stage">
+          <button
+            type="button"
+            id="btn-prev-card"
+            class="nav-arrow-btn nav-arrow-btn--prev"
+            aria-label="البطاقة السابقة"
+          >
+            <span aria-hidden="true">→</span>
+            <span class="nav-arrow-label">السابق</span>
+          </button>
+
+          <!-- البطاقة الحالية -->
+          <article
+            id="flashcard-card"
+            class="flashcard"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <div class="flashcard-top-border" aria-hidden="true"></div>
+
+            <!-- منطقة الصورة الاختيارية (تظهر تلقائياً عند إضافة رابط صورة في script.js) -->
+            <div id="flashcard-image-container" class="flashcard-image-container is-empty">
+              <img id="flashcard-image" class="flashcard-image" src="" alt="" />
+            </div>
+
+            <div class="flashcard-content">
+              <span id="flashcard-tag" class="flashcard-tag">لمحة تراثية</span>
+              <h3 id="flashcard-title" class="flashcard-title">عنوان البطاقة</h3>
+              <p id="flashcard-text" class="flashcard-text">نص البطاقة</p>
+            </div>
+
+            <footer class="flashcard-footer">
+              <span class="flashcard-swipe-hint">يمكنك السحب يميناً أو يساراً للتنقل</span>
+              <span id="flashcard-counter" class="flashcard-counter" dir="ltr">01 / 10</span>
+            </footer>
+          </article>
+
+          <button
+            type="button"
+            id="btn-next-card"
+            class="nav-arrow-btn nav-arrow-btn--next"
+            aria-label="البطاقة التالية"
+          >
+            <span class="nav-arrow-label">التالي</span>
+            <span aria-hidden="true">←</span>
+          </button>
+        </div>
+
+        <!-- أزرار تنقل مريحة للهواتف أسفل البطاقة -->
+        <div class="flashcard-mobile-controls">
+          <button
+            type="button"
+            id="btn-prev-card-mobile"
+            class="btn-mobile-nav"
+            aria-label="البطاقة السابقة"
+          >
+            <span aria-hidden="true">→</span>
+            <span>السابق</span>
+          </button>
+          <button
+            type="button"
+            id="btn-next-card-mobile"
+            class="btn-mobile-nav"
+            aria-label="البطاقة التالية"
+          >
+            <span>التالي</span>
+            <span aria-hidden="true">←</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ملف البرمجة والبيانات -->
+  <script src="script.js"></script>
 </body>
 </html>
