@@ -52,68 +52,10 @@
       </div>
     </section>
 
-    <!-- 2. القائمة الرئيسية -->
-    <section id="screen-main" class="screen main-screen" aria-hidden="true">
-      <header class="screen-header">
-        <button type="button" class="btn-back" data-target="screen-welcome"><span class="btn-back-icon" aria-hidden="true">→</span><span>شاشة الترحيب</span></button>
-        <div class="brand-badge">اليوم التراثي السوداني</div>
-      </header>
-      <div class="main-content">
-        <div class="section-intro">
-          <h2 class="section-heading">اكتشف ملامح تراثنا</h2>
-          <p class="section-subheading">اختر أحد القسمين الرئيسيين لبدء جولتك الثقافية</p>
-        </div>
-        <div class="main-cards-grid">
-          <button type="button" class="main-card main-card--songs" data-target="screen-songs">
-            <div class="main-card-pattern" aria-hidden="true"></div>
-            <div class="main-card-icon" aria-hidden="true">
-              <svg viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="2" stroke-dasharray="4 4"/><path d="M26 42V22L44 18V38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="22" cy="42" r="5" stroke="currentColor" stroke-width="2.5"/><circle cx="40" cy="38" r="5" stroke="currentColor" stroke-width="2.5"/></svg>
-            </div>
-            <div class="main-card-body">
-              <span class="main-card-tag">الموسيقى والغناء</span>
-              <h3 class="main-card-title">أغاني وأغاني</h3>
-              <p class="main-card-desc">محطات موسيقية وأغانٍ سودانية خالدة تسافر بنا عبر الوجدان السوداني.</p>
-            </div>
-            <span class="main-card-cta"><span>دخول القسم</span><span aria-hidden="true">←</span></span>
-          </button>
-
-          <button type="button" class="main-card main-card--culture" data-target="screen-culture-hub">
-            <div class="main-card-pattern" aria-hidden="true"></div>
-            <div class="main-card-icon" aria-hidden="true">
-              <svg viewBox="0 0 64 64" fill="none"><polygon points="32,8 56,32 32,56 8,32" stroke="currentColor" stroke-width="2.5"/><polygon points="32,16 48,32 32,48 16,32" stroke="currentColor" stroke-width="2"/><circle cx="32" cy="32" r="5" fill="currentColor"/></svg>
-            </div>
-            <div class="main-card-body">
-              <span class="main-card-tag">الأدب، الشعر والهوية</span>
-              <h3 class="main-card-title">لمحات من ثقافتنا</h3>
-              <p class="main-card-desc">استكشف القصائد والروايات، تنوع العادات، وأبرز الشخصيات في تاريخ السودان.</p>
-            </div>
-            <span class="main-card-cta"><span>استكشاف اللمحات</span><span aria-hidden="true">←</span></span>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- 3. قسم الأغاني -->
-    <section id="screen-songs" class="screen songs-screen" aria-hidden="true">
-      <header class="screen-header">
-        <button type="button" class="btn-back" data-target="screen-main"><span class="btn-back-icon" aria-hidden="true">→</span><span>الرئيسية</span></button>
-        <div class="brand-badge">أغاني وأغاني</div>
-      </header>
-      <div class="placeholder-wrapper">
-        <div class="placeholder-card">
-          <div class="placeholder-icon" aria-hidden="true">♪</div>
-          <span class="placeholder-badge">قريباً</span>
-          <h2 class="placeholder-title">قسم أغاني وأغاني قيد التجهيز</h2>
-          <p class="placeholder-text">نعمل حالياً على إعداد مكتبة تفاعلية تضم روائع الغناء السوداني وتوثيق قصصها وألحانها. سيُضاف المحتوى لهذا القسم في التحديث القادم.</p>
-          <button type="button" class="btn-primary" data-target="screen-main">العودة للقائمة الرئيسية</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- 4. فقاعات الفئات الثقافية -->
+    <!-- 2. فقاعات الفئات الثقافية -->
     <section id="screen-culture-hub" class="screen culture-hub-screen" aria-hidden="true">
       <header class="screen-header">
-        <button type="button" class="btn-back" data-target="screen-main"><span class="btn-back-icon" aria-hidden="true">→</span><span>الرئيسية</span></button>
+        <button type="button" class="btn-back" data-target="screen-welcome"><span class="btn-back-icon" aria-hidden="true">→</span><span>شاشة الترحيب</span></button>
         <div class="brand-badge">لمحات من ثقافتنا</div>
       </header>
       <div class="hub-intro"><p>اختر أحد المسارات الثقافية المتفرعة لاستعراض البطاقات المعرفية</p></div>
@@ -131,7 +73,7 @@
       </div>
     </section>
 
-    <!-- 5. البطاقات المعرفية -->
+    <!-- 3. البطاقات المعرفية -->
     <section id="screen-flashcards" class="screen flashcards-screen" aria-hidden="true">
       <header class="screen-header">
         <button type="button" id="btn-back-to-hub" class="btn-back" data-target="screen-culture-hub"><span class="btn-back-icon" aria-hidden="true">→</span><span>العودة للفئات</span></button>
