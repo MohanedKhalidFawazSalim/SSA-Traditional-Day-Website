@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- ملف التنسيقات الخارجي -->
-  <link rel="stylesheet" href="css/style.css?v=8" />
+  <link rel="stylesheet" href="css/style.css?v=9" />
 
   <!-- defer يجعل JavaScript يعمل بعد تحليل HTML -->
   <script src="js/script.js" defer></script>
@@ -48,7 +48,7 @@
         <span class="welcome-kicker">حبابكم عشرة نورتونا</span>
         <h1 class="welcome-title">أهلاً بيكم في اليوم التراثي السوداني</h1>
         <p class="welcome-subtitle">رحلة تفاعلية نحتفي فيها بتنوعنا الثقافي و إرثنا الأدبي، </p>
-        <div class="welcome-prompt"><span class="pulse-dot" aria-hidden="true"></span><span>اتفضل ادخل حبابك</span></div>
+        <div class="welcome-prompt"><span class="pulse-dot" aria-hidden="true"></span><span>ااتفضل ادخل حبابك</span></div>
       </div>
     </section>
 
@@ -66,10 +66,69 @@
           <span class="bubble-center-label">محور التراث</span>
           <h2 class="bubble-center-title">لمحات من ثقافتنا</h2>
         </div>
-        <button type="button" class="bubble-branch bubble-branch--1" data-category="poetry"><span class="bubble-branch-num">01</span><span class="bubble-branch-title">قصائد وأبيات شعرية</span><span class="bubble-branch-meta">10 بطاقات</span></button>
-        <button type="button" class="bubble-branch bubble-branch--2" data-category="literature"><span class="bubble-branch-num">02</span><span class="bubble-branch-title">الأدب والرواية السودانية</span><span class="bubble-branch-meta">10 بطاقات</span></button>
-        <button type="button" class="bubble-branch bubble-branch--3" data-category="traditions"><span class="bubble-branch-num">03</span><span class="bubble-branch-title">اختلاف العادات والثقافات السودانية</span><span class="bubble-branch-meta">10 بطاقات</span></button>
-        <button type="button" class="bubble-branch bubble-branch--4" data-category="personalities"><span class="bubble-branch-num">04</span><span class="bubble-branch-title">أبرز الشخصيات السودانية</span><span class="bubble-branch-meta">10 بطاقات</span></button>
+
+        <div class="bubble-branches-grid">
+          <button type="button" class="bubble-branch" data-category="history_makers">
+            <span class="bubble-branch-num">01</span>
+            <span class="bubble-branch-title">🏛️ شخصيات صنعت التاريخ</span>
+            <span class="bubble-branch-meta">8 بطاقات</span>
+          </button>
+          <button type="button" class="bubble-branch" data-category="singers">
+            <span class="bubble-branch-num">02</span>
+            <span class="bubble-branch-title">🎤 مغنين وفنانين</span>
+            <span class="bubble-branch-meta">4 بطاقات</span>
+          </button>
+          <button type="button" class="bubble-branch" data-category="poets">
+            <span class="bubble-branch-num">03</span>
+            <span class="bubble-branch-title">✍️ الشعراء السودانيون</span>
+            <span class="bubble-branch-meta">10 بطاقات</span>
+          </button>
+          <button type="button" class="bubble-branch" data-category="novels">
+            <span class="bubble-branch-num">04</span>
+            <span class="bubble-branch-title">📚 الروايات السودانية</span>
+            <span class="bubble-branch-meta">5 بطاقات</span>
+          </button>
+          <button type="button" class="bubble-branch" data-category="folktales">
+            <span class="bubble-branch-num">05</span>
+            <span class="bubble-branch-title">🧙‍♀️ الأحاجي السودانية</span>
+            <span class="bubble-branch-meta">5 بطاقات</span>
+          </button>
+          <button type="button" class="bubble-branch" data-category="proverbs">
+            <span class="bubble-branch-num">06</span>
+            <span class="bubble-branch-title">🗣️ الأمثال السودانية</span>
+            <span class="bubble-branch-meta">10 بطاقات</span>
+          </button>
+          <button type="button" class="bubble-branch" data-category="dictionary">
+            <span class="bubble-branch-num">07</span>
+            <span class="bubble-branch-title">🌍 قاموس الكلمات واللغات</span>
+            <span class="bubble-branch-meta">5 بطاقات</span>
+          </button>
+          <button type="button" class="bubble-branch" data-category="kingdoms">
+            <span class="bubble-branch-num">08</span>
+            <span class="bubble-branch-title">👑 ملوك وممالك كوش والنوبة</span>
+            <span class="bubble-branch-meta">7 بطاقات</span>
+          </button>
+          <button type="button" class="bubble-branch" data-category="landmarks">
+            <span class="bubble-branch-num">09</span>
+            <span class="bubble-branch-title">🗺️ معالم وعجائب جغرافية</span>
+            <span class="bubble-branch-meta">7 بطاقات</span>
+          </button>
+          <button type="button" class="bubble-branch" data-category="historical_moments">
+            <span class="bubble-branch-num">10</span>
+            <span class="bubble-branch-title">⚔️ مواقف تاريخية مجنونة</span>
+            <span class="bubble-branch-meta">5 بطاقات</span>
+          </button>
+          <button type="button" class="bubble-branch" data-category="sports_music">
+            <span class="bubble-branch-num">11</span>
+            <span class="bubble-branch-title">⚽ رياضة، فن، وموسيقى</span>
+            <span class="bubble-branch-meta">6 بطاقات</span>
+          </button>
+          <button type="button" class="bubble-branch" data-category="traditions_food">
+            <span class="bubble-branch-num">12</span>
+            <span class="bubble-branch-title">🍲 عادات، أكلات، وأسرار اللهجة</span>
+            <span class="bubble-branch-meta">10 بطاقات</span>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -93,6 +152,15 @@
               <span id="flashcard-tag" class="flashcard-tag">لمحة تراثية</span>
               <h3 id="flashcard-title" class="flashcard-title">عنوان البطاقة</h3>
               <p id="flashcard-text" class="flashcard-text">نص البطاقة</p>
+
+              <button type="button" id="btn-reveal-answer" class="btn-reveal-answer" aria-expanded="false" aria-controls="flashcard-answer-box">
+                <span>اكشف الإجابة</span>
+              </button>
+
+              <div id="flashcard-answer-box" class="flashcard-answer-box" hidden>
+                <span class="flashcard-answer-label">الإجابة</span>
+                <p id="flashcard-answer-text" class="flashcard-answer-text"></p>
+              </div>
             </div>
             <footer class="flashcard-footer"><span class="flashcard-swipe-hint">يمكنك السحب يميناً أو يساراً للتنقل</span><span id="flashcard-counter" class="flashcard-counter" dir="ltr">01 / 10</span></footer>
           </article>
