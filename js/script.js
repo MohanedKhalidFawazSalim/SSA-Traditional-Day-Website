@@ -102,7 +102,7 @@ function createFloatingGreetings() {
 function initWelcomeScreen() {
   createFloatingGreetings();
   const enterMain = () => {
-    if (appState.currentScreen === "screen-welcome") navigateToScreen("screen-main");
+    if (appState.currentScreen === "screen-welcome") navigateToScreen("screen-culture-hub");
   };
   dom.welcomeScreen.addEventListener("click", enterMain);
   dom.welcomeScreen.addEventListener("keydown", (event) => {
@@ -281,9 +281,7 @@ function initKeyboardAndResize() {
       else if (event.key === "ArrowRight") goToPrevCard();
       else if (event.key === "Escape") navigateToScreen("screen-culture-hub");
     } else if (event.key === "Escape" && appState.currentScreen === "screen-culture-hub") {
-      navigateToScreen("screen-main");
-    } else if (event.key === "Escape" && appState.currentScreen === "screen-songs") {
-      navigateToScreen("screen-main");
+      navigateToScreen("screen-welcome");
     }
   });
 
